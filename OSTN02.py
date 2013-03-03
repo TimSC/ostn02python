@@ -1,4 +1,4 @@
-
+import os
 import bz2
 
 #OSTN02 for Python
@@ -18,7 +18,8 @@ MIN_Y_SHIFT = -81.603
 MIN_Z_SHIFT =  43.982
 
 def ostn():
-	fi = bz2.BZ2File("ostn02data.txt.bz2")
+	filename = os.path.join(os.path.dirname(__file__), 'ostn02data.txt.bz2')
+	fi = bz2.BZ2File(filename)
 	lines = fi.readlines()
 	out = {}
 	for line in lines:
