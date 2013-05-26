@@ -530,15 +530,32 @@ def parse_grid (letters,e=0.0,n=0.0):
 
     letters = str.upper(letters)
 
-    c = letters[0:1]
+    c = letters[0:1].upper()
     e += Big_off[c][0]*BIG_SQUARE
     n += Big_off[c][1]*BIG_SQUARE
 
-    d = letters[1:2]
+    d = letters[1:2].upper()
     e += Small_off[d][0]*SQUARE
     n += Small_off[d][1]*SQUARE
 
     return (e,n)
+
+def os_streetview_tile_to_grid(tile_name):
+	#Convert OS Street View tile name (e.g. SO02NW) to grid (e.g. 
+	e,n = parse_grid(tile_name)
+	e += 10000 * int(tile_name[2:3])
+	n += 10000 * int(tile_name[3:4])
+	
+	if tile_name[4:6].upper() == "NW": 
+		n += 5000
+	if tile_name[4:6].upper() == "NE": 
+		n += 5000
+		e += 5000
+	if tile_name[4:6].upper() == "SE": 
+		e += 5000
+	return e,n
+
+
 
 
 '''
