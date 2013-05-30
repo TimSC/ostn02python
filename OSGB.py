@@ -540,6 +540,24 @@ def parse_grid (letters,e=0.0,n=0.0):
 
     return (e,n)
 
+def grid_to_small_code(e, n):
+	er = int(e % BIG_SQUARE) / SQUARE
+	nr = int(n % BIG_SQUARE) / SQUARE
+	found = None
+	for cd in Small_off:
+		if er == Small_off[cd][0] and nr == Small_off[cd][1]:
+			found = cd
+	ebig = e - er *  SQUARE
+	nbig = n - nr *  SQUARE
+	return found, ebig, nbig
+
+def grid_to_big_code(e, n):
+	found = None
+	for cd in Big_off:
+		if e == Big_off[cd][0] and n == Big_off[cd][1]:
+			found = cd
+	return found
+
 def os_streetview_tile_to_grid(tile_name):
 	#Convert OS Street View tile name (e.g. SO02NW) to grid (e.g. 
 	e,n = parse_grid(tile_name)
@@ -555,8 +573,45 @@ def os_streetview_tile_to_grid(tile_name):
 		e += 5000
 	return e,n
 
+def grid_to_os_streetview_tile(grid):
 
+	e = grid[0]
+	n = grid[1]
 
+	#Deal with small offsets
+	e, eSmall = divmod(e, 5000)
+	n, nSmall = divmod(n, 5000)
+	e = int(e * 5000)
+	n = int(n * 5000)
+
+	#Find which corner of the tile we are in
+	eRem = e % 10000
+	nRem = n % 10000
+	if eRem >= 5000.: 
+		etile = True
+		e -= 5000
+	else: etile = False
+	if nRem >= 5000.: 
+		ntile = True
+		n -= 5000
+	else: ntile = False
+	corner = None
+	if etile and ntile: corner = "NE"
+	if etile and not ntile: corner = "SE"
+	if not etile and ntile: corner = "NW"
+	if not etile and not ntile: corner = "SW"
+
+	#Mid level offset
+	eMidOffset = int(e % 100000) / 10000
+	nMidOffset = int(n % 100000) / 10000
+	e -= eMidOffset * 10000
+	n -= nMidOffset * 10000
+
+	smallCode, e, n = grid_to_small_code(e, n)
+	bigCode = grid_to_big_code(e, n)
+
+	codeOut = "{0}{1}{2}{3}{4}".format(bigCode, smallCode, eMidOffset, nMidOffset, corner)
+	return codeOut, eSmall, nSmall
 
 '''
 sub _get_en {
