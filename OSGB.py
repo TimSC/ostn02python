@@ -608,7 +608,7 @@ def grid_to_os_streetview_tile(grid):
 	n -= nMidOffset * 10000
 
 	smallCode, e, n = grid_to_small_code(e, n)
-	bigCode = grid_to_big_code(e, n)
+	bigCode = grid_to_big_code(e / BIG_SQUARE, n / BIG_SQUARE)
 
 	codeOut = "{0}{1}{2}{3}{4}".format(bigCode, smallCode, eMidOffset, nMidOffset, corner)
 	return codeOut, eSmall, nSmall
