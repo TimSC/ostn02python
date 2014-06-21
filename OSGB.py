@@ -538,7 +538,7 @@ def parse_grid (letters,e=0.0,n=0.0):
     e += Small_off[d][0]*SQUARE
     n += Small_off[d][1]*SQUARE
 
-    return (e,n)
+    return (e + 50,n + 50)
 
 def grid_to_small_code(e, n):
 	er = int(e % BIG_SQUARE) / SQUARE

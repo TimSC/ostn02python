@@ -10,6 +10,7 @@
 
 from OSGB import *
 from OSTN02 import *
+import transform
 
 print "OSGB36_to_ETRS89"
 print "================"
@@ -32,6 +33,14 @@ print str((gla, glo))
 print "Actual answer: 51.29831006, 1.07337394, 44.621"
 
 print "ETRS89 is within a metre of WGS84 (as used by GPS receivers), at time of writing (2011)."
+
+print "\nGridRef to ETRS89"
+print "=================="
+
+ref = "TR143599"
+print "Starting point: "+ref
+print transform.OSGB36GridRefToETRS89(ref)
+print "Expected:", 51.298306, 1.073337
 
 print "\nETRS89_to_OSGB36"
 print "================="
