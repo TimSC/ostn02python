@@ -1,15 +1,21 @@
-import OSTN02, OSGB, transform
+import transform, csv
 
 if __name__=="__main__":
 	fi = open("../pos.csv")
-	for li in fi:
-		vals = li.strip().split(",")
-		#print vals
-		name = vals[0]
-		pos = vals[1].split(" ")[0]
+	for li in csv.reader(fi):
+		name = li[0]
+
+		#Isolate the map reference
+		pos = li[1].split(" ")[0]
+
+		#Remove unwanted characters
+		pos = pos.replace(';',"")
+
 		print name, pos
-		if pos[0] == '"':
-			pos = pos[1:]
+
+		if len(pos) == 0:
+			#Skip zero length map references
+			continue
 
 		print transform.OSGB36GridRefToETRS89(pos)
 		
