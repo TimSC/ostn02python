@@ -8,5 +8,8 @@ if __name__=="__main__":
 		name = vals[0]
 		pos = vals[1].split(" ")[0]
 		print name, pos
+		if pos[0] == '"':
+			pos = pos[1:]
+
 		print transform.OSGB36GridRefToETRS89(pos)
 		
