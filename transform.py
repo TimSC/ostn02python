@@ -18,3 +18,17 @@ def OSGB36GridRefToETRS89(mapRef):
 	(gla, glo) = OSGB.grid_to_ll(x, y)
 	return (gla, glo)
 
+def OSGB36GridRefToOSFB36EastNorth(mapRef):
+	if len(mapRef) < 4:
+		raise ValueError("Map ref too short")
+	if len(mapRef) % 2 == 1:
+		print ValueError("Unexpected input length")
+
+	coordLen = (len(mapRef) - 2) / 2
+	code = mapRef[:2]
+	east = int(mapRef[2:2+coordLen])*pow(10,5-coordLen)
+	nrth = int(mapRef[2+coordLen:])*pow(10,5-coordLen)
+
+	x1, y1 = OSGB.parse_grid(code, east, nrth)	
+	return x1, y1
+
