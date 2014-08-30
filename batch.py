@@ -72,7 +72,7 @@ if __name__=="__main__":
 		description.append(u"Access: {0}<br/>".format(access))
 		description.append(u"\n")
 
-		descriptionStr = "".join(description)
+		descriptionStr = "\n".join(description)
 		print descriptionStr
 
 		outKml.Waypoint(lat, lon, formattedName, description=descriptionStr)
