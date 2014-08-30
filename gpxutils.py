@@ -2,17 +2,18 @@
 from datetime import date
 from xml.etree.ElementTree import ElementTree
 from xml.parsers import expat
-import os
+import os, codecs
+from xml.sax.saxutils import escape
 
 class GpxWriter:
 	def __init__(self, filename):
-		self.fi = open(filename, "w")
+		self.fi = codecs.open(filename, "w", "utf-8")
 		self.fi.write('<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n')
 		self.fi.write('<gpx xmlns="http://www.topografix.com/GPX/1/1" creator="" version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">')
 
 	def StartTrack(self, name=None):
 		self.fi.write("<trk>\n")
-		if name is not None: self.fi.write("<name>"+str(name)+"</name>\n")
+		if name is not None: self.fi.write(u"<name>"+escape(name)+"</name>\n")
  
 	def StartTrackSeg(self):
 		self.fi.write("<trkseg>")
@@ -29,13 +30,14 @@ class GpxWriter:
 	def EndTrack(self):
 		self.fi.write("</trk>")
 
-	def Waypoint(self, lat, lon, name=None, ele=None, time=None):
+	def Waypoint(self, lat, lon, name=None, ele=None, time=None, description = None):
 		self.fi.write('<wpt lat="'+str(lat)+'" lon="'+str(lon)+'">\n')
-		if ele is not None: self.fi.write('<ele>'+str(ele)+'</ele>\n')
+		print ele
+		if ele is not None: self.fi.write('<ele>'+float(ele)+'</ele>\n')
+		if description is not None: self.fi.write(u'<desc>'+escape(description)+'</desc>\n')
 		if time is not None: self.fi.write('<time>'+date.fromtimestamp(float(time)).isoformat()+'</time>\n')
-		if name is not None: self.fi.write('<name>'+str(name)+'</name>\n')
+		if name is not None: self.fi.write(u'<name>'+escape(name)+'</name>\n')
 		#<cmt></cmt>
-		#<desc></desc>
 		#<link href=""><text></text></link>
 		#<sym></sym>
 		#<type></type>
