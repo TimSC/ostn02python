@@ -17,7 +17,7 @@ def utf_8_encoder(unicode_csv_data):
 #Main program
 if __name__=="__main__":
 	#Read CSV file
-	fiRows = list(unicode_csv_reader(codecs.open("pos_essex2.csv", "r", "utf-8")))
+	fiRows = list(unicode_csv_reader(codecs.open("pos_essex_final.csv", "r", "utf-8")))
 
 	#Output file
 	outKml = kmlutils.KmlWriter("out.kml")
@@ -27,21 +27,34 @@ if __name__=="__main__":
 	fi = [dict(zip(fiRows[0], tmp)) for tmp in fiRows[1:]]
 	
 	centrePos = transform.OSGB36GridRefToOSFB36EastNorth("TM390914")
+	existingNames = {}
 
 	for li in fi:
 
-		name = li["NAME,C,40"]
-		condition = li["CONDITION,N,9,0"]
 		rating = li["Rating"]
 		url = li["URL"]
-		typ = li["TYPE,C,60"]
-		ambience = li["AMBIENCE,N,9,0"]	
-		access = li["ACCESS,N,9,0"]	
-		colour = li["COLOUR,C,9"]
-		info = li["INFO"]
+		name = li["Name"]
+		typ = li["Type"]
+		nearest = li["Nearest Place"]
+		county = li["County"]
+		condition = li["Condition"]
+		ambience = li["Ambience"]
+		image = li["Image"]
+		info = li["Info"]
+		directions = li["Directions"]
+
+		#name = li["NAME,C,40"]
+		#condition = li["CONDITION,N,9,0"]
+		#rating = li["Rating"]
+		#url = li["URL"]
+		#typ = li["TYPE,C,60"]
+		#ambience = li["AMBIENCE,N,9,0"]	
+		#access = li["ACCESS,N,9,0"]	
+		#colour = li["COLOUR,C,9"]
+		#info = li["INFO"]
 
 		#Isolate the map reference
-		pos = li["MAP_REF,C,9"].split(" ")[0]
+		pos = li["Map Ref"].split(" ")[0]
 
 		#Remove unwanted characters
 		pos = pos.replace(';',"")
@@ -62,14 +75,24 @@ if __name__=="__main__":
 
 		print dist
 
-		formattedName = u"{0}".format(name)
+		if name in existingNames:
+			existingNames[name] += 1
+			formattedName = u"{0} #{1}".format(name, existingNames[name])
+		else:
+			formattedName = u"{0}".format(name)
+			existingNames[name] = 1
 		description = []
+
 		description.append(u"Type: {0}<br/>".format(typ))
-		description.append(u"Info: {0}<br/>".format(info))
-		description.append(u"rating: {0}<br/>".format(rating))
+		description.append(u"Rating: {0}<br/>".format(rating))
 		description.append(u"Condition: {0}<br/>".format(condition))
 		description.append(u"Ambience: {0}<br/>".format(ambience))
-		description.append(u"Access: {0}<br/>".format(access))
+
+		description.append(u"County: {0}<br/>".format(county))
+		description.append(u"Near: {0}<br/>".format(nearest))
+		description.append(u"Directions: {0}<br/>".format(directions))
+		description.append(u"Web: {0}<br/>".format(url))
+		description.append(u"Info: {0}<br/>".format(info))
 		description.append(u"\n")
 
 		descriptionStr = "\n".join(description)
