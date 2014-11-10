@@ -571,7 +571,7 @@ def os_streetview_tile_to_grid(tile_name):
 		e += 5000
 	if tile_name[4:6].upper() == "SE": 
 		e += 5000
-	return e,n
+	return e + 50,n + 50
 
 def grid_to_os_streetview_tile(grid):
 
