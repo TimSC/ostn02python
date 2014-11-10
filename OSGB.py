@@ -526,7 +526,13 @@ sub parse_GPS_grid {
     return _parse_grid($letters, $e, $n)
 }
 '''
+
 def parse_grid (letters,e=0.0,n=0.0):
+	'''Convert from OS grid references with letter prefix to the national grid.
+	e and n are in metres.
+	e.g. OSGB.parse_grid("ST", 00000, 00000) converts to (300000, 100000)
+	NY462754 is OSGB.parse_grid("NY", 46200, 75400) and converts to (346200, 575400)
+	'''
 
     letters = str.upper(letters)
 
@@ -538,7 +544,7 @@ def parse_grid (letters,e=0.0,n=0.0):
     e += Small_off[d][0]*SQUARE
     n += Small_off[d][1]*SQUARE
 
-    return (e + 50,n + 50)
+    return (e, n)
 
 def grid_to_small_code(e, n):
 	er = int(e % BIG_SQUARE) / SQUARE
@@ -571,7 +577,7 @@ def os_streetview_tile_to_grid(tile_name):
 		e += 5000
 	if tile_name[4:6].upper() == "SE": 
 		e += 5000
-	return e,n
+	return e, n
 
 def grid_to_os_streetview_tile(grid):
 
