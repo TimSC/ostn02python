@@ -18,12 +18,12 @@ WGS84_FLATTENING = 1.0 / 298.257223563
 
 # set defaults for Britain
 ellipsoid_shapes = {
-    'WGS84': [ 6378137.0000, 6356752.31425 ],
-    'ETRS89' : [ 6378137.0000, 6356752.31425 ],
-    'ETRN89' : [ 6378137.0000, 6356752.31425 ],
-    'GRS80'  : [ 6378137.0000, 6356752.31425 ],
-    'OSGB36' : [ 6377563.396,  6356256.910  ],
-    'OSGM02' : [ 6377563.396,  6356256.910  ] }
+	'WGS84': [ 6378137.0000, 6356752.31425 ],
+	'ETRS89' : [ 6378137.0000, 6356752.31425 ],
+	'ETRN89' : [ 6378137.0000, 6356752.31425 ],
+	'GRS80'  : [ 6378137.0000, 6356752.31425 ],
+	'OSGB36' : [ 6377563.396,  6356256.910  ],
+	'OSGM02' : [ 6377563.396,  6356256.910  ] }
 # yes lots of synonyms
 
 # constants for OSGB mercator projection
@@ -34,181 +34,181 @@ N0 = -100000   # Northing for origin
 F0 = 0.9996012717 # Convergence factor
 
 # useful patterns
-#our $Real_Pattern    = qr /^[-+][\.\d]+$/;
-#our $GSq_Pattern     = qr /[GHJMNORST][A-Z]/i;
-#our $LR_Pattern      = qr /^(\d{1,3})\D+(\d{3})\D?(\d{3})$/;
-#our $GR_Pattern      = qr /^($GSq_Pattern)\s?(\d{3})\D?(\d{3})$/;
+#our $Real_Pattern	= qr /^[-+][\.\d]+$/;
+#our $GSq_Pattern	 = qr /[GHJMNORST][A-Z]/i;
+#our $LR_Pattern	  = qr /^(\d{1,3})\D+(\d{3})\D?(\d{3})$/;
+#our $GR_Pattern	  = qr /^($GSq_Pattern)\s?(\d{3})\D?(\d{3})$/;
 #our $Long_GR_Pattern = qr /^($GSq_Pattern)\s?(\d{5})\D?(\d{5})$/;
 #our $ISO_LL_Pattern = qr{\A
-#                        ([-+])(    \d{2,6})(?:\.(\d+))?
-#                        ([-+])([01]\d{2,6})(?:\.(\d+))?
-#                        ([-+][\.\d]+)?
-#                        \/
-#                        \Z}xo;
+#						([-+])(	\d{2,6})(?:\.(\d+))?
+#						([-+])([01]\d{2,6})(?:\.(\d+))?
+#						([-+][\.\d]+)?
+#						\/
+#						\Z}xo;
 
 def ll_to_grid(lat,lon,alt=0.0,shape = 'WGS84'):
 
-    #my $shape = defined $ellipsoid_shapes{$_[-1]} ? pop : 'OSGB36'; # last argument (or omitted)
-    #if ($lat =~ $ISO_LL_Pattern ) {
-    #    ($lat, $lon, $alt) = parse_ISO_ll($lat);
-    #}
+	#my $shape = defined $ellipsoid_shapes{$_[-1]} ? pop : 'OSGB36'; # last argument (or omitted)
+	#if ($lat =~ $ISO_LL_Pattern ) {
+	#	($lat, $lon, $alt) = parse_ISO_ll($lat);
+	#}
 
-    (a,b) = ellipsoid_shapes[shape]
-    
-    e2 = (a**2.-b**2.)/a**2.
-    n = (a-b)/(a+b)
-    
-    phi = RAD * lat
-    lam = RAD * lon
+	(a,b) = ellipsoid_shapes[shape]
+	
+	e2 = (a**2.-b**2.)/a**2.
+	n = (a-b)/(a+b)
+	
+	phi = RAD * lat
+	lam = RAD * lon
 
-    sp2  = math.sin(phi)**2.
-    nu   = a * F0 * (1. - e2 * sp2 ) ** -0.5
-    rho  = a * F0 * (1. - e2) * (1. - e2 * sp2 ) ** -1.5
-    eta2 = nu/rho - 1.
-    
-    M = _compute_M(phi, b, n)
+	sp2  = math.sin(phi)**2.
+	nu   = a * F0 * (1. - e2 * sp2 ) ** -0.5
+	rho  = a * F0 * (1. - e2) * (1. - e2 * sp2 ) ** -1.5
+	eta2 = nu/rho - 1.
+	
+	M = _compute_M(phi, b, n)
 
-    cp = math.cos(phi)
-    sp = math.sin(phi)
-    tp = math.tan(phi)
-    tp2 = tp*tp
-    tp4 = tp2*tp2
+	cp = math.cos(phi)
+	sp = math.sin(phi)
+	tp = math.tan(phi)
+	tp2 = tp*tp
+	tp4 = tp2*tp2
 
-    I    = M + N0
-    II   = nu/2.  * sp * cp
-    III  = nu/24. * sp * cp**3. * (5.-tp2+9.*eta2)
-    IIIA = nu/720.* sp * cp**5. *(61.-58.*tp2+tp4)
+	I	= M + N0
+	II   = nu/2.  * sp * cp
+	III  = nu/24. * sp * cp**3. * (5.-tp2+9.*eta2)
+	IIIA = nu/720.* sp * cp**5. *(61.-58.*tp2+tp4)
 
-    IV   = nu*cp
-    V    = nu/6.   * cp**3. * (nu/rho-tp2)
-    VI   = nu/120. * cp**5. * (5.-18.*tp2+tp4+14.*eta2-58.*tp2*eta2)
+	IV   = nu*cp
+	V	= nu/6.   * cp**3. * (nu/rho-tp2)
+	VI   = nu/120. * cp**5. * (5.-18.*tp2+tp4+14.*eta2-58.*tp2*eta2)
 
-    l = lam - LAM0
-    north = I  + II*l**2. + III*l**4. + IIIA*l**6.;
-    east  = E0 + IV*l    +   V*l**3. +   VI*l**5.;
+	l = lam - LAM0
+	north = I  + II*l**2. + III*l**4. + IIIA*l**6.;
+	east  = E0 + IV*l	+   V*l**3. +   VI*l**5.;
 
-    # round to 3dp (mm)
-    #($east, $north) = map { sprintf "%.3f", $_ } ($east, $north);
+	# round to 3dp (mm)
+	#($east, $north) = map { sprintf "%.3f", $_ } ($east, $north);
 
-    return (east,north)
+	return (east,north)
 
 def grid_to_ll(E,N,shape='WGS84'):
 
-    #if ( $E =~ $GR_Pattern || $E =~ $Long_GR_Pattern || $E =~ $LR_Pattern ) {
-    #    ($E, $N) = parse_grid($E);
-    #}
+	#if ( $E =~ $GR_Pattern || $E =~ $Long_GR_Pattern || $E =~ $LR_Pattern ) {
+	#	($E, $N) = parse_grid($E);
+	#}
 
-    (a,b) = ellipsoid_shapes[shape]
+	(a,b) = ellipsoid_shapes[shape]
 
-    e2 = (a**2.-b**2.)/a**2.
-    n = (a-b)/(a+b)
+	e2 = (a**2.-b**2.)/a**2.
+	n = (a-b)/(a+b)
 
-    dN = N - N0
+	dN = N - N0
 
-    phi = PHI0 + dN/(a * F0)
+	phi = PHI0 + dN/(a * F0)
 
-    M = _compute_M(phi, b, n);
-    while (dN-M >= 0.001):
-       phi = phi + (dN-M)/(a * F0)
-       M = _compute_M(phi, b, n)
+	M = _compute_M(phi, b, n);
+	while (dN-M >= 0.001):
+	   phi = phi + (dN-M)/(a * F0)
+	   M = _compute_M(phi, b, n)
 
-    sp2  = math.sin(phi)**2.;
-    nu   = a * F0 *             (1. - e2 * sp2 ) ** -0.5
-    rho  = a * F0 * (1. - e2) * (1. - e2 * sp2 ) ** -1.5
-    eta2 = nu/rho - 1.
+	sp2  = math.sin(phi)**2.;
+	nu   = a * F0 *			 (1. - e2 * sp2 ) ** -0.5
+	rho  = a * F0 * (1. - e2) * (1. - e2 * sp2 ) ** -1.5
+	eta2 = nu/rho - 1.
 
-    tp = math.tan(phi)
-    tp2 = tp*tp
-    tp4 = tp2*tp2
+	tp = math.tan(phi)
+	tp2 = tp*tp
+	tp4 = tp2*tp2
 
-    VII  = tp /   (2.*rho*nu)
-    VIII = tp /  (24.*rho*nu**3.) *  (5. +  3.*tp2 + eta2 - 9.*tp2*eta2)
-    IX   = tp / (720.*rho*nu**5.) * (61. + 90.*tp2 + 45.*tp4)
+	VII  = tp /   (2.*rho*nu)
+	VIII = tp /  (24.*rho*nu**3.) *  (5. +  3.*tp2 + eta2 - 9.*tp2*eta2)
+	IX   = tp / (720.*rho*nu**5.) * (61. + 90.*tp2 + 45.*tp4)
 
-    sp = 1.0 / math.cos(phi) 
-    tp6 = tp4*tp2
+	sp = 1.0 / math.cos(phi) 
+	tp6 = tp4*tp2
 
-    X    = sp/nu
-    XI   = sp/(   6.*nu**3.)*(nu/rho + 2.*tp2)
-    XII  = sp/( 120.*nu**5.)*(      5. + 28.*tp2 +   24.*tp4)
-    XIIA = sp/(5040.*nu**7.)*(    61. + 662.*tp2 + 1320.*tp4 + 720.*tp6)
+	X	= sp/nu
+	XI   = sp/(   6.*nu**3.)*(nu/rho + 2.*tp2)
+	XII  = sp/( 120.*nu**5.)*(	  5. + 28.*tp2 +   24.*tp4)
+	XIIA = sp/(5040.*nu**7.)*(	61. + 662.*tp2 + 1320.*tp4 + 720.*tp6)
 
-    e = E - E0
+	e = E - E0
 
-    phi = phi        - VII*e**2. + VIII*e**4. -   IX*e**6.
-    lam = LAM0 + X*e -  XI*e**3. +  XII*e**5. - XIIA*e**7.
+	phi = phi		- VII*e**2. + VIII*e**4. -   IX*e**6.
+	lam = LAM0 + X*e -  XI*e**3. +  XII*e**5. - XIIA*e**7.
 
-    phi = phi * DAR
-    lam = lam * DAR
+	phi = phi * DAR
+	lam = lam * DAR
 
-    return (phi, lam)
-    #return format_ll_ISO($phi,$lam);
+	return (phi, lam)
+	#return format_ll_ISO($phi,$lam);
 
 
 def _compute_M(phi, b, n):
-    p_plus  = phi + PHI0
-    p_minus = phi - PHI0
-    return b * F0 * (
-           (1 + n * (1 + 5./4*n*(1 + n)))*p_minus
-         - 3*n*(1+n*(1+7./8*n))  * math.sin(p_minus) * math.cos(p_plus)
-         + (15./8*n * (n*(1+n))) * math.sin(2*p_minus) * math.cos(2*p_plus)
-         - 35./24*n**3             * math.sin(3*p_minus) * math.cos(3*p_plus)
-           )
+	p_plus  = phi + PHI0
+	p_minus = phi - PHI0
+	return b * F0 * (
+		   (1 + n * (1 + 5./4*n*(1 + n)))*p_minus
+		 - 3*n*(1+n*(1+7./8*n))  * math.sin(p_minus) * math.cos(p_plus)
+		 + (15./8*n * (n*(1+n))) * math.sin(2*p_minus) * math.cos(2*p_plus)
+		 - 35./24*n**3			 * math.sin(3*p_minus) * math.cos(3*p_plus)
+		   )
 
 '''
 
 our @Grid = ( [ qw( V W X Y Z ) ],
-              [ qw( Q R S T U ) ],
-              [ qw( L M N O P ) ],
-              [ qw( F G H J K ) ],
-              [ qw( A B C D E ) ] );
+			  [ qw( Q R S T U ) ],
+			  [ qw( L M N O P ) ],
+			  [ qw( F G H J K ) ],
+			  [ qw( A B C D E ) ] );
 '''
 Big_off = {#East then north
-                 'G' : ( -1, 2 ),
-                 'H' : ( 0, 2 ),
-                 'J' : ( 1, 2 ),
-                 'M' : ( -1, 1 ),
-                 'N' : ( 0, 1 ),
-                 'O' : ( 1, 1 ),
-                 'R' : ( -1, 0 ),
-                 'S' : ( 0, 0 ),
-                 'T' : ( 1, 0 ),
-           }
+				 'G' : ( -1, 2 ),
+				 'H' : ( 0, 2 ),
+				 'J' : ( 1, 2 ),
+				 'M' : ( -1, 1 ),
+				 'N' : ( 0, 1 ),
+				 'O' : ( 1, 1 ),
+				 'R' : ( -1, 0 ),
+				 'S' : ( 0, 0 ),
+				 'T' : ( 1, 0 ),
+		   }
 
 Small_off = {#East then north
-                 'A' : ( 0, 4 ),
-                 'B' : ( 1, 4 ),
-                 'C' : ( 2, 4 ),
-                 'D' : ( 3, 4 ),
-                 'E' : ( 4, 4 ),
+				 'A' : ( 0, 4 ),
+				 'B' : ( 1, 4 ),
+				 'C' : ( 2, 4 ),
+				 'D' : ( 3, 4 ),
+				 'E' : ( 4, 4 ),
 
-                 'F' : ( 0, 3 ),
-                 'G' : ( 1, 3 ),
-                 'H' : ( 2, 3 ),
-                 'J' : ( 3, 3 ),
-                 'K' : ( 4, 3 ),
+				 'F' : ( 0, 3 ),
+				 'G' : ( 1, 3 ),
+				 'H' : ( 2, 3 ),
+				 'J' : ( 3, 3 ),
+				 'K' : ( 4, 3 ),
 
-                 'L' : ( 0, 2 ),
-                 'M' : ( 1, 2 ),
-                 'N' : ( 2, 2 ),
-                 'O' : ( 3, 2 ),
-                 'P' : ( 4, 2 ),
+				 'L' : ( 0, 2 ),
+				 'M' : ( 1, 2 ),
+				 'N' : ( 2, 2 ),
+				 'O' : ( 3, 2 ),
+				 'P' : ( 4, 2 ),
 
-                 'Q' : ( 0, 1 ),
-                 'R' : ( 1, 1 ),
-                 'S' : ( 2, 1 ),
-                 'T' : ( 3, 1 ),
-                 'U' : ( 4, 1 ),
+				 'Q' : ( 0, 1 ),
+				 'R' : ( 1, 1 ),
+				 'S' : ( 2, 1 ),
+				 'T' : ( 3, 1 ),
+				 'U' : ( 4, 1 ),
 
-                 'V' : ( 0, 0 ),
-                 'W' : ( 1, 0 ),
-                 'X' : ( 2, 0 ),
-                 'Y' : ( 3, 0 ),
-                 'Z' : ( 4, 0 ),
-           }
+				 'V' : ( 0, 0 ),
+				 'W' : ( 1, 0 ),
+				 'X' : ( 2, 0 ),
+				 'Y' : ( 3, 0 ),
+				 'Z' : ( 4, 0 ),
+		   }
 
 BIG_SQUARE = 500000
-SQUARE     = 100000
+SQUARE	 = 100000
 '''
 # Landranger sheet data
 # These are the full GRs (as metres from Newlyn) of the SW corner of each sheet.
@@ -420,131 +420,131 @@ our %LR = (
 );
 
 sub format_grid_trad {
-    use integer;
-    my ($sq, $e, $n) = format_grid_GPS(@_);
-    ($e,$n) = ($e/100,$n/100);
-    return ($sq, $e, $n) if wantarray;
-    return sprintf "%s %03d %03d", $sq, $e, $n;
+	use integer;
+	my ($sq, $e, $n) = format_grid_GPS(@_);
+	($e,$n) = ($e/100,$n/100);
+	return ($sq, $e, $n) if wantarray;
+	return sprintf "%s %03d %03d", $sq, $e, $n;
 }
 
 sub format_grid_GPS {
-    my $e = shift;
-    my $n = shift;
+	my $e = shift;
+	my $n = shift;
 
-    croak "Easting must not be negative" if $e<0;
-    croak "Northing must not be negative" if $n<0;
+	croak "Easting must not be negative" if $e<0;
+	croak "Northing must not be negative" if $n<0;
 
-    # round to nearest metre
-    ($e,$n) = map { $_+0.5 } ($e, $n);
-    my $sq;
+	# round to nearest metre
+	($e,$n) = map { $_+0.5 } ($e, $n);
+	my $sq;
 
-    {
-        use integer;
-        $sq = sprintf "%s%s", _letter( 2 + $e/BIG_SQUARE         , 1+$n/BIG_SQUARE        ),
-                              _letter(($e % BIG_SQUARE ) / SQUARE, ( $n % BIG_SQUARE )/SQUARE );
+	{
+		use integer;
+		$sq = sprintf "%s%s", _letter( 2 + $e/BIG_SQUARE		 , 1+$n/BIG_SQUARE		),
+							  _letter(($e % BIG_SQUARE ) / SQUARE, ( $n % BIG_SQUARE )/SQUARE );
 
-        ($e,$n) = map { $_ % SQUARE } ($e, $n);
-    }
+		($e,$n) = map { $_ % SQUARE } ($e, $n);
+	}
 
-    return ($sq, $e, $n) if wantarray;
-    return sprintf "%s %05d %05d", $sq, $e, $n;
+	return ($sq, $e, $n) if wantarray;
+	return sprintf "%s %05d %05d", $sq, $e, $n;
 }
 
 sub format_grid_landranger {
-    use integer;
-    my ($e,$n) = @_;
-    my @sheets = ();
-    for my $sheet (1..204) {
-        my $de = $e-$LR{$sheet}->[0];
-        my $dn = $n-$LR{$sheet}->[1];
-        push @sheets, $sheet if $de>=0 && $de < 40000
-                             && $dn>=0 && $dn < 40000;
-    }
-    my $sq;
-    ($sq, $e, $n) = format_grid_trad($e,$n);
+	use integer;
+	my ($e,$n) = @_;
+	my @sheets = ();
+	for my $sheet (1..204) {
+		my $de = $e-$LR{$sheet}->[0];
+		my $dn = $n-$LR{$sheet}->[1];
+		push @sheets, $sheet if $de>=0 && $de < 40000
+							 && $dn>=0 && $dn < 40000;
+	}
+	my $sq;
+	($sq, $e, $n) = format_grid_trad($e,$n);
 
-    return ($sq, $e, $n, @sheets) if wantarray;
+	return ($sq, $e, $n, @sheets) if wantarray;
 
-    return sprintf("%s %03d %03d is not on any OS Sheet", $sq, $e, $n) unless @sheets;
-    return sprintf("%s %03d %03d on OS Sheet %d"        , $sq, $e, $n, $sheets[0]) if 1==@sheets;
-    return sprintf("%s %03d %03d on OS Sheets %d and %d", $sq, $e, $n, @sheets)    if 2==@sheets;
-    return sprintf("%s %03d %03d on OS Sheets %s", $sq, $e, $n, join(', ', @sheets[0..($#sheets-1)], "and $sheets[-1]"));
+	return sprintf("%s %03d %03d is not on any OS Sheet", $sq, $e, $n) unless @sheets;
+	return sprintf("%s %03d %03d on OS Sheet %d"		, $sq, $e, $n, $sheets[0]) if 1==@sheets;
+	return sprintf("%s %03d %03d on OS Sheets %d and %d", $sq, $e, $n, @sheets)	if 2==@sheets;
+	return sprintf("%s %03d %03d on OS Sheets %s", $sq, $e, $n, join(', ', @sheets[0..($#sheets-1)], "and $sheets[-1]"));
 
 }
 
 sub _letter {
-    my $x = shift;
-    my $y = shift;
-    die "Argument out of range in _letter\n"
-        unless defined $x && $x=~/^\d+$/ && $x>=0 && $x<5
-            && defined $y && $y=~/^\d+$/ && $y>=0 && $y<5;
+	my $x = shift;
+	my $y = shift;
+	die "Argument out of range in _letter\n"
+		unless defined $x && $x=~/^\d+$/ && $x>=0 && $x<5
+			&& defined $y && $y=~/^\d+$/ && $y>=0 && $y<5;
 
-    return $Grid[$y][$x];
+	return $Grid[$y][$x];
 }
 
 
 sub parse_grid {
-    my $s = shift;
-    return parse_trad_grid($s) if $s =~ $GR_Pattern;
-    return parse_GPS_grid($s)  if $s =~ $Long_GR_Pattern;
-    return parse_landranger_grid($1, $2, $3) if $s =~ $LR_Pattern;
-    return parse_landranger_grid($s) if $s =~ /^\d{1,3}$/ && $s < 205;
-    croak "$s <-- this does not match my grid ref patterns";
-    return
+	my $s = shift;
+	return parse_trad_grid($s) if $s =~ $GR_Pattern;
+	return parse_GPS_grid($s)  if $s =~ $Long_GR_Pattern;
+	return parse_landranger_grid($1, $2, $3) if $s =~ $LR_Pattern;
+	return parse_landranger_grid($s) if $s =~ /^\d{1,3}$/ && $s < 205;
+	croak "$s <-- this does not match my grid ref patterns";
+	return
 }
 
 sub parse_trad_grid {
-    my ($letters, $e, $n);
-    if    ( @_ == 1 && $_[0] =~ $GR_Pattern ) {
-        ($letters, $e, $n) = ($1,$2,$3)
-    }
-    elsif ( @_ == 2 && $_[0] =~ $GSq_Pattern && $_[1] =~ /^(\d{3})(\d{3})$/ ) {
-        $letters = $_[0]; ($e, $n) = ($1,$2)
-    }
-    elsif ( @_ == 3 && $_[0] =~ $GSq_Pattern && $_[1] =~ /^\d{1,3}$/
-                                             && $_[2] =~ /^\d{1,3}$/ ) {
-        ($letters, $e, $n) = @_
-    }
-    else { croak "Cannot parse @_ as a traditional grid reference"; }
+	my ($letters, $e, $n);
+	if	( @_ == 1 && $_[0] =~ $GR_Pattern ) {
+		($letters, $e, $n) = ($1,$2,$3)
+	}
+	elsif ( @_ == 2 && $_[0] =~ $GSq_Pattern && $_[1] =~ /^(\d{3})(\d{3})$/ ) {
+		$letters = $_[0]; ($e, $n) = ($1,$2)
+	}
+	elsif ( @_ == 3 && $_[0] =~ $GSq_Pattern && $_[1] =~ /^\d{1,3}$/
+											 && $_[2] =~ /^\d{1,3}$/ ) {
+		($letters, $e, $n) = @_
+	}
+	else { croak "Cannot parse @_ as a traditional grid reference"; }
 
-    return _parse_grid($letters, $e*100, $n*100)
+	return _parse_grid($letters, $e*100, $n*100)
 }
 
 sub parse_GPS_grid {
-    my ($letters, $e, $n);
-    if    ( @_ == 1 && $_[0] =~ $Long_GR_Pattern ) {
-        ($letters, $e, $n) = ($1,$2,$3)
-    }
-    elsif ( @_ == 2 && $_[0] =~ $GSq_Pattern && $_[1] =~ /^(\d{5})(\d{5})$/ ) {
-        $letters = $_[0]; ($e, $n) = ($1,$2)
-    }
-    elsif ( @_ == 3 && $_[0] =~ $GSq_Pattern && $_[1] =~ /^\d{5}$/ && $_[2] =~ /^\d{5}$/ ) {
-        ($letters, $e, $n) = @_
-    }
-    else { croak "Cannot parse @_ as a GPS-style grid reference"; }
+	my ($letters, $e, $n);
+	if	( @_ == 1 && $_[0] =~ $Long_GR_Pattern ) {
+		($letters, $e, $n) = ($1,$2,$3)
+	}
+	elsif ( @_ == 2 && $_[0] =~ $GSq_Pattern && $_[1] =~ /^(\d{5})(\d{5})$/ ) {
+		$letters = $_[0]; ($e, $n) = ($1,$2)
+	}
+	elsif ( @_ == 3 && $_[0] =~ $GSq_Pattern && $_[1] =~ /^\d{5}$/ && $_[2] =~ /^\d{5}$/ ) {
+		($letters, $e, $n) = @_
+	}
+	else { croak "Cannot parse @_ as a GPS-style grid reference"; }
 
-    return _parse_grid($letters, $e, $n)
+	return _parse_grid($letters, $e, $n)
 }
 '''
 
 def parse_grid (letters,e=0.0,n=0.0):
-	'''Convert from OS grid references with letter prefix to the national grid.
+	"""Convert from OS grid references with letter prefix to the national grid.
 	e and n are in metres.
 	e.g. OSGB.parse_grid("ST", 00000, 00000) converts to (300000, 100000)
 	NY462754 is OSGB.parse_grid("NY", 46200, 75400) and converts to (346200, 575400)
-	'''
+	"""
 
-    letters = str.upper(letters)
+	letters = str.upper(letters)
 
-    c = letters[0:1].upper()
-    e += Big_off[c][0]*BIG_SQUARE
-    n += Big_off[c][1]*BIG_SQUARE
+	c = letters[0:1].upper()
+	e += Big_off[c][0]*BIG_SQUARE
+	n += Big_off[c][1]*BIG_SQUARE
+	
+	d = letters[1:2].upper()
+	e += Small_off[d][0]*SQUARE
+	n += Small_off[d][1]*SQUARE
 
-    d = letters[1:2].upper()
-    e += Small_off[d][0]*SQUARE
-    n += Small_off[d][1]*SQUARE
-
-    return (e, n)
+	return (e, n)
 
 def grid_to_small_code(e, n):
 	er = int(e % BIG_SQUARE) / SQUARE
@@ -621,325 +621,325 @@ def grid_to_os_streetview_tile(grid):
 
 '''
 sub _get_en {
-    my $e = shift || croak "You need to supply a grid reference";
-    my $n = shift;
-    if ( $e =~ /^(\d{3})(\d{3})$/ && not defined $n  ) { return ($1*100, $2*100) }
-    if ( $e =~ /^\d{3}$/          && $n =~ /^\d{3}$/ ) { return ($e*100, $n*100) }
-    if ( $e =~ /^\d{4}$/          && $n =~ /^\d{4}$/ ) { return ($e*10,  $n*10 ) }
-    if ( $e =~ /^\d{5}$/          && $n =~ /^\d{5}$/ ) { return ($e*1,   $n*1  ) }
-    croak "I was expecting a grid reference, not this: @_";
+	my $e = shift || croak "You need to supply a grid reference";
+	my $n = shift;
+	if ( $e =~ /^(\d{3})(\d{3})$/ && not defined $n  ) { return ($1*100, $2*100) }
+	if ( $e =~ /^\d{3}$/		  && $n =~ /^\d{3}$/ ) { return ($e*100, $n*100) }
+	if ( $e =~ /^\d{4}$/		  && $n =~ /^\d{4}$/ ) { return ($e*10,  $n*10 ) }
+	if ( $e =~ /^\d{5}$/		  && $n =~ /^\d{5}$/ ) { return ($e*1,   $n*1  ) }
+	croak "I was expecting a grid reference, not this: @_";
 }
 
 
 sub parse_landranger_grid {
 
-    return unless defined wantarray;
+	return unless defined wantarray;
 
-    my $sheet = shift;
+	my $sheet = shift;
 
-    croak "You need to supply an OS Sheet number" unless defined $sheet;
-    croak "I do not know the OS Sheet number ($sheet) that you have given"
-    unless defined $LR{$sheet};
+	croak "You need to supply an OS Sheet number" unless defined $sheet;
+	croak "I do not know the OS Sheet number ($sheet) that you have given"
+	unless defined $LR{$sheet};
 
-    unless (@_) {
-        return wantarray ? @{$LR{$sheet}} : format_grid_trad(@{$LR{$sheet}});
-    }
+	unless (@_) {
+		return wantarray ? @{$LR{$sheet}} : format_grid_trad(@{$LR{$sheet}});
+	}
 
-    use integer;
+	use integer;
 
-    my ($e,$n) = &_get_en; # convert grid refs to metres
+	my ($e,$n) = &_get_en; # convert grid refs to metres
 
-    my ($lle,$lln) = @{$LR{$sheet}};
+	my ($lle,$lln) = @{$LR{$sheet}};
 
-    # offset from start, corrected if we are in the next 100km sq
-    my $offset = $e - $lle%100_000 ; $offset += 100_000 if $offset < 0;
+	# offset from start, corrected if we are in the next 100km sq
+	my $offset = $e - $lle%100_000 ; $offset += 100_000 if $offset < 0;
 
-    if ( $offset >= 40_000 ) {
-        croak sprintf "The easting you have given is %.1f km east of Sheet %s", $offset/1000-40, $sheet;
-    }
-    elsif ( $offset < 0 ) {
-        croak sprintf "The easting you have given is %.1f km west of Sheet %s", abs($offset/1000), $sheet;
-    }
-    else {
-        $e = $lle + $offset;
-    }
+	if ( $offset >= 40_000 ) {
+		croak sprintf "The easting you have given is %.1f km east of Sheet %s", $offset/1000-40, $sheet;
+	}
+	elsif ( $offset < 0 ) {
+		croak sprintf "The easting you have given is %.1f km west of Sheet %s", abs($offset/1000), $sheet;
+	}
+	else {
+		$e = $lle + $offset;
+	}
 
-    # now the same for the northing
-    $offset = $n - $lln%100_000 ; $offset += 100_000 if $offset < 0;
-    if ( $offset >= 40_000 ) {
-        croak sprintf "The northing you have given is %.1f km north of Sheet %s", $offset/1000-40, $sheet;
-    }
-    elsif ( $offset < 0 ) {
-        croak sprintf "The northing you have given is %.1f km south of Sheet %s", abs($offset/1000), $sheet;
-    }
-    else {
-        $n = $lln + $offset;
-    }
+	# now the same for the northing
+	$offset = $n - $lln%100_000 ; $offset += 100_000 if $offset < 0;
+	if ( $offset >= 40_000 ) {
+		croak sprintf "The northing you have given is %.1f km north of Sheet %s", $offset/1000-40, $sheet;
+	}
+	elsif ( $offset < 0 ) {
+		croak sprintf "The northing you have given is %.1f km south of Sheet %s", abs($offset/1000), $sheet;
+	}
+	else {
+		$n = $lln + $offset;
+	}
 
-    return ($e, $n);
+	return ($e, $n);
 
 }
 
 sub parse_ISO_ll {
-    return unless defined wantarray;
-    my $ISO_string = shift;
+	return unless defined wantarray;
+	my $ISO_string = shift;
 
-    croak "I can't parse  an ISO 6709 lat/lon string from your input ($ISO_string)" unless
-    my ($lat_sign, $lat_ip, $lat_fp,
-        $lon_sign, $lon_ip, $lon_fp, $alt ) = $ISO_string =~ m{$ISO_LL_Pattern};
+	croak "I can't parse  an ISO 6709 lat/lon string from your input ($ISO_string)" unless
+	my ($lat_sign, $lat_ip, $lat_fp,
+		$lon_sign, $lon_ip, $lon_fp, $alt ) = $ISO_string =~ m{$ISO_LL_Pattern};
 
-    my $l_lat = length($lat_ip);
-    my $l_lon = length($lon_ip);
-    croak "Not ISO 6709 string: $ISO_string" unless $l_lat%2==0 && $l_lon%2==1; # (2,4,6) + (3,5,7)
-    croak "Bad ISO 6709 string: $ISO_string" unless $l_lon-$l_lat == 1; # (2,3) (4,5) or (6,7)
+	my $l_lat = length($lat_ip);
+	my $l_lon = length($lon_ip);
+	croak "Not ISO 6709 string: $ISO_string" unless $l_lat%2==0 && $l_lon%2==1; # (2,4,6) + (3,5,7)
+	croak "Bad ISO 6709 string: $ISO_string" unless $l_lon-$l_lat == 1; # (2,3) (4,5) or (6,7)
 
-    my ($lat, $lon) = (0,0);
-    $lat_fp = (defined $lat_fp) ? ".$lat_fp" : '';
-    $lon_fp = (defined $lon_fp) ? ".$lon_fp" : '';
-    if    ( $l_lat == 2 ) {
-        $lat = $lat_ip.$lat_fp;
-        $lon = $lon_ip.$lon_fp;
-    }
-    elsif ( $l_lat == 4 ) {
-        $lat = substr($lat_ip,0,2) + ( substr($lat_ip,2,2) . $lat_fp ) / 60;
-        $lon = substr($lon_ip,0,3) + ( substr($lon_ip,3,2) . $lon_fp ) / 60;
-    }
-    else {
-        $lat = substr($lat_ip,0,2) + substr($lat_ip,2,2)/60 + ( substr($lat_ip,4,2) . $lat_fp )/3600;
-        $lon = substr($lon_ip,0,3) + substr($lon_ip,3,2)/60 + ( substr($lon_ip,5,2) . $lon_fp )/3600;
-    }
+	my ($lat, $lon) = (0,0);
+	$lat_fp = (defined $lat_fp) ? ".$lat_fp" : '';
+	$lon_fp = (defined $lon_fp) ? ".$lon_fp" : '';
+	if	( $l_lat == 2 ) {
+		$lat = $lat_ip.$lat_fp;
+		$lon = $lon_ip.$lon_fp;
+	}
+	elsif ( $l_lat == 4 ) {
+		$lat = substr($lat_ip,0,2) + ( substr($lat_ip,2,2) . $lat_fp ) / 60;
+		$lon = substr($lon_ip,0,3) + ( substr($lon_ip,3,2) . $lon_fp ) / 60;
+	}
+	else {
+		$lat = substr($lat_ip,0,2) + substr($lat_ip,2,2)/60 + ( substr($lat_ip,4,2) . $lat_fp )/3600;
+		$lon = substr($lon_ip,0,3) + substr($lon_ip,3,2)/60 + ( substr($lon_ip,5,2) . $lon_fp )/3600;
+	}
 
-    croak "Latitude cannot exceed 90 degrees"   if $lat > 90;
-    croak "Longitude cannot exceed 180 degrees" if $lon > 180;
+	croak "Latitude cannot exceed 90 degrees"   if $lat > 90;
+	croak "Longitude cannot exceed 180 degrees" if $lon > 180;
 
-    $lat = $lat_sign . $lat;
-    $lon = $lon_sign . $lon;
+	$lat = $lat_sign . $lat;
+	$lon = $lon_sign . $lon;
 
-    return ($lat, $lon, $alt) if wantarray;
-    return format_ll_ISO($lat,$lon);
+	return ($lat, $lon, $alt) if wantarray;
+	return format_ll_ISO($lat,$lon);
 }
 
-#     Latitude and Longitude in Degrees:
-#         +-DD.DDDD+-DDD.DDDD/         (eg +12.345-098.765/)
-#      Latitude and Longitude in Degrees and Minutes:
-#         +-DDMM.MMMM+-DDDMM.MMMM/     (eg +1234.56-09854.321/)
-#      Latitude and Longitude in Degrees, Minutes and Seconds:
-#         +-DDMMSS.SSSS+-DDDMMSS.SSSS/ (eg +123456.7-0985432.1/)
+#	 Latitude and Longitude in Degrees:
+#		 +-DD.DDDD+-DDD.DDDD/		 (eg +12.345-098.765/)
+#	  Latitude and Longitude in Degrees and Minutes:
+#		 +-DDMM.MMMM+-DDDMM.MMMM/	 (eg +1234.56-09854.321/)
+#	  Latitude and Longitude in Degrees, Minutes and Seconds:
+#		 +-DDMMSS.SSSS+-DDDMMSS.SSSS/ (eg +123456.7-0985432.1/)
 #
 #   where:
 #
-#        +-DD   = three-digit integer degrees part of latitude (through -90 ~ -00 ~ +90)
-#        +-DDD  = four-digit integer degrees part of longitude (through -180 ~ -000 ~ +180)
-#        MM    = two-digit integer minutes part (00 through 59)
-#        SS    = two-digit integer seconds part (00 through 59)
-#        .DDDD = variable-length fraction part in degrees
-#        .MMMM = variable-length fraction part in minutes
-#        .SSSS = variable-length fraction part in seconds
+#		+-DD   = three-digit integer degrees part of latitude (through -90 ~ -00 ~ +90)
+#		+-DDD  = four-digit integer degrees part of longitude (through -180 ~ -000 ~ +180)
+#		MM	= two-digit integer minutes part (00 through 59)
+#		SS	= two-digit integer seconds part (00 through 59)
+#		.DDDD = variable-length fraction part in degrees
+#		.MMMM = variable-length fraction part in minutes
+#		.SSSS = variable-length fraction part in seconds
 #
-#        * Latitude is written in the first, and longitude is second.
-#        * The sign is always necessary for each value.
-#          Latitude : North="+" South="-"
-#          Longitude: East ="+" West ="-"
-#        * The integer part is a fixed length respectively.
-#          And padding character is "0".
-#          (Note: Therefor, it is shown explicitly that the first is latitude and the second is
-#                 longitude, from the number of figures of the integer part.)
-#        * It is variable-length below the decimal point.
-#        * "/"is a terminator.
+#		* Latitude is written in the first, and longitude is second.
+#		* The sign is always necessary for each value.
+#		  Latitude : North="+" South="-"
+#		  Longitude: East ="+" West ="-"
+#		* The integer part is a fixed length respectively.
+#		  And padding character is "0".
+#		  (Note: Therefor, it is shown explicitly that the first is latitude and the second is
+#				 longitude, from the number of figures of the integer part.)
+#		* It is variable-length below the decimal point.
+#		* "/"is a terminator.
 #
 #   Altitude can be added optionally.
-#      Latitude, Longitude (in Degrees) and Altitude:
-#         +-DD.DDDD+-DDD.DDDD+-AAA.AAA/         (eg +12.345-098.765+15.9/)
-#      Latitude, Longitude (in Degrees and Minutes) and Altitude:
-#         +-DDMM.MMMM+-DDDMM.MMMM+-AAA.AAA/     (eg +1234.56-09854.321+15.9/)
-#      Latitude, Longitude (in Degrees, Minutes and Seconds) and Altitude:
-#         +-DDMMSS.SSSS+-DDDMMSS.SSSS+-AAA.AAA/ (eg +123456.7-0985432.1+15.9/)
+#	  Latitude, Longitude (in Degrees) and Altitude:
+#		 +-DD.DDDD+-DDD.DDDD+-AAA.AAA/		 (eg +12.345-098.765+15.9/)
+#	  Latitude, Longitude (in Degrees and Minutes) and Altitude:
+#		 +-DDMM.MMMM+-DDDMM.MMMM+-AAA.AAA/	 (eg +1234.56-09854.321+15.9/)
+#	  Latitude, Longitude (in Degrees, Minutes and Seconds) and Altitude:
+#		 +-DDMMSS.SSSS+-DDDMMSS.SSSS+-AAA.AAA/ (eg +123456.7-0985432.1+15.9/)
 #
 #   where:
 #
-#        +-AAA.AAA = variable-length altitude in meters [m].
+#		+-AAA.AAA = variable-length altitude in meters [m].
 #
-#        * The unit of altitude is meter [m].
-#        * The integer part and the fraction part of altitude are both variable-length.
+#		* The unit of altitude is meter [m].
+#		* The integer part and the fraction part of altitude are both variable-length.
 #
 
 
 sub format_ll_trad {
-    return unless defined wantarray;
-    my ($lat, $lon) = @_;
-    my ($lad, $lam, $las, $is_north) = _dms($lat); my $lah = $is_north ? 'N' : 'S';
-    my ($lod, $lom, $los, $is_east ) = _dms($lon); my $loh = $is_east  ? 'E' : 'W';
-    return ($lah, $lad, $lam, $las, $loh, $lod, $lom, $los) if wantarray;
-    return sprintf("%s%d:%02d:%02d %s%d:%02d:%02d", $lah, $lad, $lam, $las, $loh, $lod, $lom, $los);
+	return unless defined wantarray;
+	my ($lat, $lon) = @_;
+	my ($lad, $lam, $las, $is_north) = _dms($lat); my $lah = $is_north ? 'N' : 'S';
+	my ($lod, $lom, $los, $is_east ) = _dms($lon); my $loh = $is_east  ? 'E' : 'W';
+	return ($lah, $lad, $lam, $las, $loh, $lod, $lom, $los) if wantarray;
+	return sprintf("%s%d:%02d:%02d %s%d:%02d:%02d", $lah, $lad, $lam, $las, $loh, $lod, $lom, $los);
 }
 
 sub _dms {
-    my $dd = shift;
-    my $is_positive = ($dd>=0);
-    $dd = abs($dd);
-    my $d = int($dd);     $dd = $dd-$d;
-    my $m = int($dd*60);  $dd = $dd-$m/60;
-    my $s = $dd*3600;
-    return $d, $m, $s, $is_positive;
+	my $dd = shift;
+	my $is_positive = ($dd>=0);
+	$dd = abs($dd);
+	my $d = int($dd);	 $dd = $dd-$d;
+	my $m = int($dd*60);  $dd = $dd-$m/60;
+	my $s = $dd*3600;
+	return $d, $m, $s, $is_positive;
 }
 
 sub format_ll_ISO {
-    return unless defined wantarray;
-    my ($lat, $lon, $option) = @_;
+	return unless defined wantarray;
+	my ($lat, $lon, $option) = @_;
 
-    my ($lasign, $lad, $lam, $las) = _get_sdms($lat);
-    my ($losign, $lod, $lom, $los) = _get_sdms($lon);
+	my ($lasign, $lad, $lam, $las) = _get_sdms($lat);
+	my ($losign, $lod, $lom, $los) = _get_sdms($lon);
 
-    # return rounded to nearest minute unless we ask for more accuracy
-    if (defined $option && (uc($option) eq 'SECONDS')) {
-        return ($lasign, $lad, $lam, $las, $losign, $lod, $lom, $los) if wantarray;
-        return sprintf("%s%02d%02d%02d%s%03d%02d%02d/", $lasign, $lad, $lam, $las, $losign, $lod, $lom, $los);
-    }
+	# return rounded to nearest minute unless we ask for more accuracy
+	if (defined $option && (uc($option) eq 'SECONDS')) {
+		return ($lasign, $lad, $lam, $las, $losign, $lod, $lom, $los) if wantarray;
+		return sprintf("%s%02d%02d%02d%s%03d%02d%02d/", $lasign, $lad, $lam, $las, $losign, $lod, $lom, $los);
+	}
 
-    ($lad, $lam) = _round_up($lad, $lam, $las);
-    ($lod, $lom) = _round_up($lod, $lom, $los);
+	($lad, $lam) = _round_up($lad, $lam, $las);
+	($lod, $lom) = _round_up($lod, $lom, $los);
 
 
 
-    return ($lasign ,$lad, $lam, $losign, $lod, $lom) if wantarray;
-    return sprintf("%s%02d%02d%s%03d%02d/", $lasign ,$lad, $lam, $losign, $lod, $lom);
+	return ($lasign ,$lad, $lam, $losign, $lod, $lom) if wantarray;
+	return sprintf("%s%02d%02d%s%03d%02d/", $lasign ,$lad, $lam, $losign, $lod, $lom);
 }
 
 sub _round_up {
-    my ($d, $m, $s) = @_;
-    return unless defined wantarray;
-    return ($d, $m) if $s<30;
+	my ($d, $m, $s) = @_;
+	return unless defined wantarray;
+	return ($d, $m) if $s<30;
 
-    $m++;
-    if ($m==60) {
-        $m = 0;
-        $d = $d+1;
-    }
-    return ($d, $m);
+	$m++;
+	if ($m==60) {
+		$m = 0;
+		$d = $d+1;
+	}
+	return ($d, $m);
 }
 
 sub _get_sdms {
-    my $r = shift;
-    return unless defined wantarray;
+	my $r = shift;
+	return unless defined wantarray;
 
-    my $sign = $r>=0 ? '+' : '-';
-    $r = abs($r);
-    my $deg = int($r);
-    my $exact_minutes = 60*($r-$deg);
-    my $whole_minutes = int($exact_minutes);
-    my $exact_seconds = 60 * ($exact_minutes-$whole_minutes);
-    my $whole_seconds = int(0.5+$exact_seconds);
-    if ( $whole_seconds > 59) {
-        $whole_minutes++;
-        $whole_seconds=0;
-        if ($whole_minutes > 59 ) {
-            $deg++;
-            $whole_minutes = 0;
-        }
-    }
-    return ($sign, $deg, $whole_minutes, $whole_seconds);
+	my $sign = $r>=0 ? '+' : '-';
+	$r = abs($r);
+	my $deg = int($r);
+	my $exact_minutes = 60*($r-$deg);
+	my $whole_minutes = int($exact_minutes);
+	my $exact_seconds = 60 * ($exact_minutes-$whole_minutes);
+	my $whole_seconds = int(0.5+$exact_seconds);
+	if ( $whole_seconds > 59) {
+		$whole_minutes++;
+		$whole_seconds=0;
+		if ($whole_minutes > 59 ) {
+			$deg++;
+			$whole_minutes = 0;
+		}
+	}
+	return ($sign, $deg, $whole_minutes, $whole_seconds);
 }
 
 my %parameters_for_datum = (
 
-    "OSGB36" => [ 573.604, 0.119600236/10000, 375, -111, 431 ],
-    "OSGM02" => [ 573.604, 0.119600236/10000, 375, -111, 431 ],
+	"OSGB36" => [ 573.604, 0.119600236/10000, 375, -111, 431 ],
+	"OSGM02" => [ 573.604, 0.119600236/10000, 375, -111, 431 ],
 
-    );
+	);
 
 sub shift_ll_from_WGS84 {
 
-    my ($lat, $lon, $elevation) = (@_, 0);
+	my ($lat, $lon, $elevation) = (@_, 0);
 
-    my $parameter_ref = $parameters_for_datum{'OSGM02'};
-    my $target_da = -1 * $parameter_ref->[0];
-    my $target_df = -1 * $parameter_ref->[1];
-    my $target_dx = -1 * $parameter_ref->[2];
-    my $target_dy = -1 * $parameter_ref->[3];
-    my $target_dz = -1 * $parameter_ref->[4];
+	my $parameter_ref = $parameters_for_datum{'OSGM02'};
+	my $target_da = -1 * $parameter_ref->[0];
+	my $target_df = -1 * $parameter_ref->[1];
+	my $target_dx = -1 * $parameter_ref->[2];
+	my $target_dy = -1 * $parameter_ref->[3];
+	my $target_dz = -1 * $parameter_ref->[4];
 
-    my $reference_major_axis = WGS84_MAJOR_AXIS;
-    my $reference_flattening = WGS84_FLATTENING;
+	my $reference_major_axis = WGS84_MAJOR_AXIS;
+	my $reference_flattening = WGS84_FLATTENING;
 
-    return _transform($lat, $lon, $elevation,
-                      $reference_major_axis, $reference_flattening,
-                      $target_da, $target_df,
-                      $target_dx, $target_dy, $target_dz);
+	return _transform($lat, $lon, $elevation,
+					  $reference_major_axis, $reference_flattening,
+					  $target_da, $target_df,
+					  $target_dx, $target_dy, $target_dz);
 }
 
 sub shift_ll_into_WGS84 {
-    my ($lat, $lon, $elevation) = (@_, 0);
+	my ($lat, $lon, $elevation) = (@_, 0);
 
-    my $parameter_ref = $parameters_for_datum{'OSGM02'};
-    my $target_da = $parameter_ref->[0];
-    my $target_df = $parameter_ref->[1];
-    my $target_dx = $parameter_ref->[2];
-    my $target_dy = $parameter_ref->[3];
-    my $target_dz = $parameter_ref->[4];
+	my $parameter_ref = $parameters_for_datum{'OSGM02'};
+	my $target_da = $parameter_ref->[0];
+	my $target_df = $parameter_ref->[1];
+	my $target_dx = $parameter_ref->[2];
+	my $target_dy = $parameter_ref->[3];
+	my $target_dz = $parameter_ref->[4];
 
-    my $reference_major_axis = WGS84_MAJOR_AXIS - $target_da;
-    my $reference_flattening = WGS84_FLATTENING - $target_df;
+	my $reference_major_axis = WGS84_MAJOR_AXIS - $target_da;
+	my $reference_flattening = WGS84_FLATTENING - $target_df;
 
-    return _transform($lat, $lon, $elevation,
-                      $reference_major_axis, $reference_flattening,
-                      $target_da, $target_df,
-                      $target_dx, $target_dy, $target_dz);
+	return _transform($lat, $lon, $elevation,
+					  $reference_major_axis, $reference_flattening,
+					  $target_da, $target_df,
+					  $target_dx, $target_dy, $target_dz);
 }
 
 sub _transform {
-    return unless defined wantarray;
+	return unless defined wantarray;
 
-    my $lat = shift;
-    my $lon = shift;
-    my $elev = shift || 0; # in case $elevation was passed as undef
+	my $lat = shift;
+	my $lon = shift;
+	my $elev = shift || 0; # in case $elevation was passed as undef
 
-    my $from_a = shift;
-    my $from_f = shift;
+	my $from_a = shift;
+	my $from_f = shift;
 
-    my $da = shift;
-    my $df = shift;
-    my $dx = shift;
-    my $dy = shift;
-    my $dz = shift;
+	my $da = shift;
+	my $df = shift;
+	my $dx = shift;
+	my $dy = shift;
+	my $dz = shift;
 
-    my $sin_lat = sin( $lat * RAD );
-    my $cos_lat = cos( $lat * RAD );
-    my $sin_lon = sin( $lon * RAD );
-    my $cos_lon = cos( $lon * RAD );
+	my $sin_lat = sin( $lat * RAD );
+	my $cos_lat = cos( $lat * RAD );
+	my $sin_lon = sin( $lon * RAD );
+	my $cos_lon = cos( $lon * RAD );
 
-    my $b_a      = 1 - $from_f;
-    my $e_sq     = $from_f*(2-$from_f);
-    my $ecc      = 1 - $e_sq*$sin_lat*$sin_lat;
+	my $b_a	  = 1 - $from_f;
+	my $e_sq	 = $from_f*(2-$from_f);
+	my $ecc	  = 1 - $e_sq*$sin_lat*$sin_lat;
 
-    my $Rn       = $from_a / sqrt($ecc);
-    my $Rm       = $from_a * (1-$e_sq) / ($ecc*sqrt($ecc));
+	my $Rn	   = $from_a / sqrt($ecc);
+	my $Rm	   = $from_a * (1-$e_sq) / ($ecc*sqrt($ecc));
 
-    my $d_lat = ( - $dx*$sin_lat*$cos_lon
-                  - $dy*$sin_lat*$sin_lon
-                  + $dz*$cos_lat
-                  + $da*($Rn*$e_sq*$sin_lat*$cos_lat)/$from_a
-                  + $df*($Rm/$b_a + $Rn*$b_a)*$sin_lat*$cos_lat
-                ) / ($Rm + $elev);
+	my $d_lat = ( - $dx*$sin_lat*$cos_lon
+				  - $dy*$sin_lat*$sin_lon
+				  + $dz*$cos_lat
+				  + $da*($Rn*$e_sq*$sin_lat*$cos_lat)/$from_a
+				  + $df*($Rm/$b_a + $Rn*$b_a)*$sin_lat*$cos_lat
+				) / ($Rm + $elev);
 
 
-    my $d_lon = ( - $dx*$sin_lon
-                  + $dy*$cos_lon
-                ) / (($Rn+$elev)*$cos_lat);
+	my $d_lon = ( - $dx*$sin_lon
+				  + $dy*$cos_lon
+				) / (($Rn+$elev)*$cos_lat);
 
-    my $d_elev = + $dx*$cos_lat*$cos_lon
-                 + $dy*$cos_lat*$sin_lon
-                 + $dz*$sin_lat
-                 - $da*$from_a/$Rn
-                 + $df*$b_a*$Rn*$sin_lat*$sin_lat;
+	my $d_elev = + $dx*$cos_lat*$cos_lon
+				 + $dy*$cos_lat*$sin_lon
+				 + $dz*$sin_lat
+				 - $da*$from_a/$Rn
+				 + $df*$b_a*$Rn*$sin_lat*$sin_lat;
 
-    my ($new_lat, $new_lon, $new_elev) = (
-         $lat + $d_lat * DAR,
-         $lon + $d_lon * DAR,
-         $elev + $d_elev,
-       );
+	my ($new_lat, $new_lon, $new_elev) = (
+		 $lat + $d_lat * DAR,
+		 $lon + $d_lon * DAR,
+		 $elev + $d_elev,
+	   );
 
-    return ($new_lat, $new_lon, $new_elev) if wantarray;
-    return sprintf "%s, (%s m)", format_ll_ISO($new_lat, $new_lon), $new_elev;
+	return ($new_lat, $new_lon, $new_elev) if wantarray;
+	return sprintf "%s, (%s m)", format_ll_ISO($new_lat, $new_lon), $new_elev;
 
 }
 
@@ -1013,17 +1013,17 @@ are explained in the L<Theory> section below.
 The following functions can be exported from the C<Geo::Coordinates::OSGB>
 module:
 
-    grid_to_ll                  ll_to_grid
+	grid_to_ll				  ll_to_grid
 
-    shift_ll_into_WGS84         shift_ll_from_WGS84
+	shift_ll_into_WGS84		 shift_ll_from_WGS84
 
-    parse_grid
-    parse_trad_grid             format_grid_trad
-    parse_GPS_grid              format_grid_GPS
-    parse_landranger_grid       format_grid_landranger
+	parse_grid
+	parse_trad_grid			 format_grid_trad
+	parse_GPS_grid			  format_grid_GPS
+	parse_landranger_grid	   format_grid_landranger
 
-    parse_ISO_ll                format_ll_trad
-                                format_ll_ISO
+	parse_ISO_ll				format_ll_trad
+								format_ll_ISO
 
 None of these is exported by default, so pick the ones you want or use an C<:all> tag to import them all at once.
 
@@ -1041,16 +1041,16 @@ supplied.
 
 The parameters can be supplied as real numbers representing decimal degrees, like this
 
-    my ($e,$n) = ll_to_grid(51.5, 2.1);
+	my ($e,$n) = ll_to_grid(51.5, 2.1);
 
 Following the normal convention, positive numbers mean North or East, negative South or West.
 If you have data with degrees, minutes and seconds, you can convert them to decimals like this:
 
-    my ($e,$n) = ll_to_grid(51+25/60, 0-5/60-2/3600);
+	my ($e,$n) = ll_to_grid(51+25/60, 0-5/60-2/3600);
 
 Or you can use a single string in ISO 6709 form, like this:
 
-    my ($e,$n) = ll_to_grid('+5130-00005/');
+	my ($e,$n) = ll_to_grid('+5130-00005/');
 
 To learn exactly what is matched by this last option, read the source of the module and look for the
 definition of C<$ISO_LL_Pattern>.  Note that the neither the C<+> or C<-> signs at the
@@ -1066,9 +1066,9 @@ south-west of the Scilly Isles).
 If you want the result presented in a more traditional grid reference format you should pass the results to one of the
 grid formatting routines, which are described below.  Like this.
 
-    $gridref = format_grid_trad(ll_to_grid(51.5,-0.0833));
-    $gridref = format_grid_GPS(ll_to_grid(51.5,-0.0833));
-    $gridref = format_grid_landranger(ll_to_grid(51.5,-0.0833));
+	$gridref = format_grid_trad(ll_to_grid(51.5,-0.0833));
+	$gridref = format_grid_GPS(ll_to_grid(51.5,-0.0833));
+	$gridref = format_grid_landranger(ll_to_grid(51.5,-0.0833));
 
 However if you call C<ll_to_grid> in a scalar context, it will
 automatically call C<format_grid_trad> for you.
@@ -1081,7 +1081,7 @@ supplied in the companion module in this distribution, then you will need to
 produce pseudo-grid references as input to those routines.  For these
 purposes you should call C<ll_to_grid()> like this:
 
-    my $pseudo_gridref = ll_to_grid(51.2, -0.4, 'WGS84');
+	my $pseudo_gridref = ll_to_grid(51.2, -0.4, 'WGS84');
 
 and then transform this to a real grid reference using C<ETRS89_to_OSGB36()>
 from the companion module.  This is explained in more detail below.
@@ -1092,12 +1092,12 @@ Formats an (easting, northing) pair into traditional `full national grid
 reference' with two letters and two sets of three numbers, like this
 `TQ 102 606'.  If you want to remove the spaces, just apply C<s/\s//g> to it.
 
-    $gridref = format_grid_trad(533000, 180000); # TQ 330 800
-    $gridref =~ s/\s//g;                         # TQ330800
+	$gridref = format_grid_trad(533000, 180000); # TQ 330 800
+	$gridref =~ s/\s//g;						 # TQ330800
 
 If you want the individual components call it in a list context.
 
-    ($sq, $e, $n) = format_grid_trad(533000, 180000); # (TQ,330,800)
+	($sq, $e, $n) = format_grid_trad(533000, 180000); # (TQ,330,800)
 
 Note the easting and northing are truncated to hectometers (as the OS system
 demands), so the grid reference refers to the lower left corner of the
@@ -1109,7 +1109,7 @@ Users who have bought a GPS receiver may initially have been puzzled by the
 unfamiliar format used to present coordinates in the British national grid format.
 On my Garmin Legend C it shows this sort of thing in the display.
 
-    TQ 23918
+	TQ 23918
    bng 00972
 
 and in the track logs the references look like this C<TQ 23918 00972>.
@@ -1119,12 +1119,12 @@ that the units are metres rather than hectometres, so you get five digits in
 each of the easting and northings instead of three.  So in a scalar context
 C<format_grid_GPS()> returns a string like this:
 
-    $gridref = format_grid_GPS(533000, 180000); # TQ 33000 80000
+	$gridref = format_grid_GPS(533000, 180000); # TQ 33000 80000
 
 If you call it in a list context, you will get a list of square, easting, and northing, with the easting and northing as
 metres within the grid square.
 
-    ($sq, $e, $n) = format_grid_GPS(533000, 180000); # (TQ,33000,80000)
+	($sq, $e, $n) = format_grid_GPS(533000, 180000); # (TQ,33000,80000)
 
 Note that, at least until WAAS is working in Europe, the results from your
 GPS are unlikely to be more accurate than plus or minus 5m even with perfect
@@ -1217,7 +1217,7 @@ you are working with the pseudo-grid references produced by the OSTN02 routines.
 
 Takes latitude and longitude in decimal degrees as arguments and returns a string like this
 
-    N52:12:34 W002:30:27
+	N52:12:34 W002:30:27
 
 In a list context it returns all 8 elements (hemisphere, degrees, minutes, seconds for each of lat and lon) in a list.
 In a void context it does nothing.
@@ -1226,7 +1226,7 @@ In a void context it does nothing.
 
 Takes latitude and longitude in decimal degrees as arguments and returns a string like this
 
-    +5212-00230/
+	+5212-00230/
 
 In a list context it returns all 6 elements (sign, degrees, minutes for each of lat and lon) in a list.
 In a void context it does nothing.
@@ -1300,12 +1300,12 @@ local area of the earth.   There are other modules that already do this that
 may be more suitable (which are referenced in the L<See Also> section), but
 the key parameters are all defined at the top of the module.
 
-    $ellipsoid_shapes{OSGB36} = [ 6377563.396,  6356256.910  ];
-    use constant LAM0 => RAD * -2;  # lon of grid origin
-    use constant PHI0 => RAD * 49;  # lat of grid origin
-    use constant E0   =>  400000;   # Easting for origin
-    use constant N0   => -100000;   # Northing for origin
-    use constant F0   => 0.9996012717; # Convergence factor
+	$ellipsoid_shapes{OSGB36} = [ 6377563.396,  6356256.910  ];
+	use constant LAM0 => RAD * -2;  # lon of grid origin
+	use constant PHI0 => RAD * 49;  # lat of grid origin
+	use constant E0   =>  400000;   # Easting for origin
+	use constant N0   => -100000;   # Northing for origin
+	use constant F0   => 0.9996012717; # Convergence factor
 
 The ellipsoid model is defined by two numbers that represent the major and
 minor radius measured in metres.  The Mercator grid projection is then
@@ -1348,19 +1348,19 @@ they divide Britain into a series of 100km squares identified in pair of
 letters:  TQ, SU, ND, etc.  The grid of the big squares actually used is
 something like this:
 
-                               HP
-                               HU
-                            HY
-                   NA NB NC ND
-                   NF NG NH NJ NK
-                   NL NM NN NO NP
-                      NR NS NT NU
-                      NW NX NY NZ
-                         SC SD SE TA
-                         SH SJ SK TF TG
-                      SM SN SO SP TL TM
-                      SR SS ST SU TQ TR
-                   SV SW SX SY SZ TV
+							   HP
+							   HU
+							HY
+				   NA NB NC ND
+				   NF NG NH NJ NK
+				   NL NM NN NO NP
+					  NR NS NT NU
+					  NW NX NY NZ
+						 SC SD SE TA
+						 SH SJ SK TF TG
+					  SM SN SO SP TL TM
+					  SR SS ST SU TQ TR
+				   SV SW SX SY SZ TV
 
 SW covers most of Cornwall, TQ London, and HU the Shetlands.  Note that it
 has the neat feature that N and S are directly above each other, so that
@@ -1527,9 +1527,9 @@ C<grid_to_ll()> with the WGS84 parameter to get WGS84 lat/long coordinates.
 
   # Reading and writing grid references
   # Format full easting and northing into traditional formats
-  $gr1 = format_grid_trad($e, $n);      # "TQ 234 098"
-  $gr1 =~ s/\s//g;                      # "TQ234098"
-  $gr2 = format_grid_GPS($e, $n);       # "TQ 23451 09893"
+  $gr1 = format_grid_trad($e, $n);	  # "TQ 234 098"
+  $gr1 =~ s/\s//g;					  # "TQ234098"
+  $gr2 = format_grid_GPS($e, $n);	   # "TQ 23451 09893"
   $gr3 = format_grid_landranger($e, $n);# "TQ 234 098 on Sheet 176"
   # or call in list context to get the individual parts
   ($sq, $e, $n) = format_grid_trad($e, $n); # ('TQ', 234, 98)
@@ -1549,7 +1549,7 @@ C<grid_to_ll()> with the WGS84 parameter to get WGS84 lat/long coordinates.
 
   # Reading and writing lat/lon coordinates
   ($lat, $lon) = parse_ISO_ll("+52-002/");
-  $iso = format_ll_ISO($lat,$lon);    # "+520000-0020000/"
+  $iso = format_ll_ISO($lat,$lon);	# "+520000-0020000/"
   $str = format_ll_trad($lat,$lon);   # "N52:00:00 W002:00:00"
 
 

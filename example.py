@@ -15,8 +15,9 @@ import transform
 print "OSGB36_to_ETRS89"
 print "================"
 print "Take OS map reference: TR143599"
-xin = 614350
-yin = 159950
+
+xin, yin = parse_grid("TR", 14300, 59900)
+
 print "OS X (Eastings) "+str(xin)
 print "OS Y (Northings) "+str(yin)
 
@@ -30,7 +31,7 @@ print str(x) + "," + str(y) + "," + str(h)
 print "The grid position converts to ETRS89 lat,lon (using grid_to_ll) of:"
 print str((gla, glo))
 
-print "Actual answer: 51.29831006, 1.07337394, 44.621"
+print "Actual answer: 51.297880, 1.072628"
 
 print "ETRS89 is within a metre of WGS84 (as used by GPS receivers), at time of writing (2011)."
 
