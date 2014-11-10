@@ -526,7 +526,13 @@ sub parse_GPS_grid {
     return _parse_grid($letters, $e, $n)
 }
 '''
+
 def parse_grid (letters,e=0.0,n=0.0):
+	'''Convert from OS grid references with letter prefix to the national grid.
+	e and n are in metres.
+	e.g. OSGB.parse_grid("ST", 00000, 00000) converts to (300000, 100000)
+	NY462754 is OSGB.parse_grid("NY", 46200, 75400) and converts to (346200, 575400)
+	'''
 
     letters = str.upper(letters)
 
