@@ -46,8 +46,8 @@ print "Expected:", 51.297880, 1.072628
 print "\nETRS89_to_OSGB36"
 print "================="
 
-gla = 51.29831006
-glo = 1.07337394
+gla = 51.297880
+glo = 1.072628
 h = 44.621
 
 
@@ -58,7 +58,7 @@ print str((x2,y2))
 print "To OS Eastings/Northings (using ETRS89_to_OSGB36):"
 print ETRS89_to_OSGB36(x2,y2,h)
 
-print "Actual Answer: 614350, 159950, 0"
+print "Actual Answer: 614300, 159900, 0"
 
 print "\nExceptions"
 print "=========="
