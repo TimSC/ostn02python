@@ -41,7 +41,7 @@ print "=================="
 ref = "TR143599"
 print "Starting point: "+ref
 print transform.OSGB36GridRefToETRS89(ref)
-print "Expected:", 51.298306, 1.073337
+print "Expected:", 51.297880, 1.072628
 
 print "\nETRS89_to_OSGB36"
 print "================="
