@@ -1,5 +1,5 @@
 import os
-import bz2
+import bz2, six
 
 #OSTN02 for Python
 #=================
@@ -18,17 +18,17 @@ MIN_Y_SHIFT = -81.603
 MIN_Z_SHIFT =  43.982
 
 def ostn():
-	filename = os.path.join(os.path.dirname(__file__), 'ostn02data.txt.bz2')
-	fi = bz2.BZ2File(filename)
-	lines = fi.readlines()
-	out = {}
-	for line in lines:
-		line = line.rstrip('\r\n')
-		#print line
-		ne = line[:6]
-		offset = (int(line[6:10],16),int(line[10:14],16),int(line[14:18],16))
-		out[ne] = offset
-	return out
+    filename = os.path.join(os.path.dirname(__file__), 'ostn02data.txt.bz2')
+    fi = bz2.BZ2File(filename)
+    lines = fi.readlines()
+    out = {}
+    for line in lines:
+        line = line.rstrip(b'\r\n').decode("ascii")
+        #six.print_(line)
+        ne = line[:6]
+        offset = (int(line[6:10],16),int(line[10:14],16),int(line[14:18],16))
+        out[ne] = offset
+    return out
 
 ostn_data = ostn() # load all the data from below
 ostn_shift_for= {}
@@ -55,8 +55,7 @@ def OSGB36_to_ETRS89 (x0, y0, z0 = 0.0):
     while 1:
         (dx, dy, dz) = _find_OSTN02_shifts_at(x,y)
         (x, y) = (x0-dx, y0-dy)
-        if abs(dx-last_dx)<epsilon and abs(dy-last_dy)<epsilon: #last APPROX 
-		break	
+        if abs(dx-last_dx)<epsilon and abs(dy-last_dy)<epsilon: break #last APPROX 
         (last_dx, last_dy) = (dx, dy)
 
     (x, y, z) = _round_to_nearest_mm(x0-dx, y0-dy, z0+dz)
@@ -84,7 +83,7 @@ def _find_OSTN02_shifts_at(x,y):
     s3_ref = _get_ostn_ref(e_index+1, n_index+1)
 
     if s0_ref is None or s1_ref is None or s2_ref is None or s3_ref is None:
-	raise Exception("[OSTN02 not defined at ("+str(x)+","+str(y)+")]")
+        raise Exception("[OSTN02 not defined at ("+str(x)+","+str(y)+")]")
 
     x0 = e_index * 1000
     y0 = n_index * 1000
@@ -113,12 +112,12 @@ def _get_ostn_ref(x,y):
 
     key = "%03x%03x" % (y, x)
     if key in ostn_shift_for:
-	return ostn_shift_for[key]
+        return ostn_shift_for[key]
 
     if key in ostn_data:
-	data = ostn_data[key]
-	data2 = (data[0]/1000.0 + MIN_X_SHIFT,data[1]/1000.0 +MIN_Y_SHIFT,data[2]/1000.0 + MIN_Z_SHIFT)
-	ostn_shift_for[key] = data2
+        data = ostn_data[key]
+        data2 = (data[0]/1000.0 + MIN_X_SHIFT,data[1]/1000.0 +MIN_Y_SHIFT,data[2]/1000.0 + MIN_Z_SHIFT)
+        ostn_shift_for[key] = data2
         return data2
 
 
