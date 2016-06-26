@@ -1,11 +1,11 @@
-import OSTN02, OSGB, six
+import OSTN02, OSGB
 
 def OSGB36GridRefToETRS89(mapRef):
 
 	if len(mapRef) < 4:
 		raise ValueError("Map ref too short")
 	if len(mapRef) % 2 == 1:
-		six.print_(ValueError("Unexpected input length"))
+		print(ValueError("Unexpected input length"))
 
 	coordLen = int((len(mapRef) - 2) / 2)
 	code = mapRef[:2]

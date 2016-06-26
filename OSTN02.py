@@ -1,5 +1,5 @@
 import os
-import bz2, six
+import bz2
 
 #OSTN02 for Python
 #=================
@@ -24,7 +24,7 @@ def ostn():
     out = {}
     for line in lines:
         line = line.rstrip(b'\r\n').decode("ascii")
-        #six.print_(line)
+        #print(line)
         ne = line[:6]
         offset = (int(line[6:10],16),int(line[10:14],16),int(line[14:18],16))
         out[ne] = offset
