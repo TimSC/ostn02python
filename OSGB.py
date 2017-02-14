@@ -1,14 +1,11 @@
+from __future__ import print_function
+import math
 
 #OSTN02 for Python
 #=================
 
-#This is a port of the perl module Geo::Coordinates::OSTN02 by Toby Thurston (c) 2008
-#Toby kindly allowed his code to be used for any purpose.
-#The python port is (c) 2010-2011 Tim Sheerman-Chase
-#The OSTN02 transform is Crown Copyright (C) 2002
+#See README.md for usage.
 #See COPYING for redistribution terms
-
-import math
 
 RAD = math.pi / 180
 DAR = 180 / math.pi
@@ -839,110 +836,86 @@ sub _get_sdms {
 	}
 	return ($sign, $deg, $whole_minutes, $whole_seconds);
 }
+'''
+parameters_for_datum = {"OSGB36": [ 573.604, 0.119600236/10000, 375, -111, 431 ],
+	"OSGM02": [ 573.604, 0.119600236/10000, 375, -111, 431 ]}
 
-my %parameters_for_datum = (
+def shift_ll_from_WGS84(lat, lon, elevation = 0.0):
 
-	"OSGB36" => [ 573.604, 0.119600236/10000, 375, -111, 431 ],
-	"OSGM02" => [ 573.604, 0.119600236/10000, 375, -111, 431 ],
+	parameter_ref = parameters_for_datum['OSGM02']
+	target_da = -1 * parameter_ref[0]
+	target_df = -1 * parameter_ref[1]
+	target_dx = -1 * parameter_ref[2]
+	target_dy = -1 * parameter_ref[3]
+	target_dz = -1 * parameter_ref[4]
 
-	);
+	reference_major_axis = WGS84_MAJOR_AXIS
+	reference_flattening = WGS84_FLATTENING
 
-sub shift_ll_from_WGS84 {
+	return _transform(lat, lon, elevation,
+					  reference_major_axis, reference_flattening,
+					  target_da, target_df,
+					  target_dx, target_dy, target_dz)
 
-	my ($lat, $lon, $elevation) = (@_, 0);
+def shift_ll_into_WGS84(lat, lon, elevation):
 
-	my $parameter_ref = $parameters_for_datum{'OSGM02'};
-	my $target_da = -1 * $parameter_ref->[0];
-	my $target_df = -1 * $parameter_ref->[1];
-	my $target_dx = -1 * $parameter_ref->[2];
-	my $target_dy = -1 * $parameter_ref->[3];
-	my $target_dz = -1 * $parameter_ref->[4];
+	parameter_ref = parameters_for_datum['OSGM02']
+	target_da = parameter_ref[0]
+	target_df = parameter_ref[1]
+	target_dx = parameter_ref[2]
+	target_dy = parameter_ref[3]
+	target_dz = parameter_ref[4]
 
-	my $reference_major_axis = WGS84_MAJOR_AXIS;
-	my $reference_flattening = WGS84_FLATTENING;
+	reference_major_axis = WGS84_MAJOR_AXIS - target_da
+	reference_flattening = WGS84_FLATTENING - target_df
 
-	return _transform($lat, $lon, $elevation,
-					  $reference_major_axis, $reference_flattening,
-					  $target_da, $target_df,
-					  $target_dx, $target_dy, $target_dz);
-}
+	return _transform(lat, lon, elevation,
+					  reference_major_axis, reference_flattening,
+					  target_da, target_df,
+					  target_dx, target_dy, target_dz)
 
-sub shift_ll_into_WGS84 {
-	my ($lat, $lon, $elevation) = (@_, 0);
+def _transform(lat, lon, elev,
+					  from_a, from_f,
+					  da, df,
+					  dx, dy, dz):
 
-	my $parameter_ref = $parameters_for_datum{'OSGM02'};
-	my $target_da = $parameter_ref->[0];
-	my $target_df = $parameter_ref->[1];
-	my $target_dx = $parameter_ref->[2];
-	my $target_dy = $parameter_ref->[3];
-	my $target_dz = $parameter_ref->[4];
+	sin_lat = math.sin(math.radians(lat))
+	cos_lat = math.cos(math.radians(lat))
+	sin_lon = math.sin(math.radians(lon))
+	cos_lon = math.cos(math.radians(lon))
 
-	my $reference_major_axis = WGS84_MAJOR_AXIS - $target_da;
-	my $reference_flattening = WGS84_FLATTENING - $target_df;
+	b_a = 1.0 - from_f
+	e_sq = from_f*(2.0-from_f)
+	ecc = 1.0 - e_sq*sin_lat*sin_lat
 
-	return _transform($lat, $lon, $elevation,
-					  $reference_major_axis, $reference_flattening,
-					  $target_da, $target_df,
-					  $target_dx, $target_dy, $target_dz);
-}
+	Rn = from_a / math.sqrt(ecc)
+	Rm = from_a * (1.0-e_sq) / (ecc*math.sqrt(ecc))
 
-sub _transform {
-	return unless defined wantarray;
+	d_lat = (( - dx*sin_lat*cos_lon
+				  - dy*sin_lat*sin_lon
+				  + dz*cos_lat
+				  + da*(Rn*e_sq*sin_lat*cos_lat)/from_a
+				  + df*(Rm/b_a + Rn*b_a)*sin_lat*cos_lat
+				) / (Rm + elev))
 
-	my $lat = shift;
-	my $lon = shift;
-	my $elev = shift || 0; # in case $elevation was passed as undef
+	d_lon = (( - dx*sin_lon
+				  + dy*cos_lon
+				) / ((Rn+elev)*cos_lat))
 
-	my $from_a = shift;
-	my $from_f = shift;
+	d_elev = (+ dx*cos_lat*cos_lon
+				 + dy*cos_lat*sin_lon
+				 + dz*sin_lat
+				 - da*from_a/Rn
+				 + df*b_a*Rn*sin_lat*sin_lat)
 
-	my $da = shift;
-	my $df = shift;
-	my $dx = shift;
-	my $dy = shift;
-	my $dz = shift;
+	(new_lat, new_lon, new_elev) = (
+		 lat + d_lat * DAR,
+		 lon + d_lon * DAR,
+		 elev + d_elev)
 
-	my $sin_lat = sin( $lat * RAD );
-	my $cos_lat = cos( $lat * RAD );
-	my $sin_lon = sin( $lon * RAD );
-	my $cos_lon = cos( $lon * RAD );
+	return new_lat, new_lon, new_elev
 
-	my $b_a	  = 1 - $from_f;
-	my $e_sq	 = $from_f*(2-$from_f);
-	my $ecc	  = 1 - $e_sq*$sin_lat*$sin_lat;
-
-	my $Rn	   = $from_a / sqrt($ecc);
-	my $Rm	   = $from_a * (1-$e_sq) / ($ecc*sqrt($ecc));
-
-	my $d_lat = ( - $dx*$sin_lat*$cos_lon
-				  - $dy*$sin_lat*$sin_lon
-				  + $dz*$cos_lat
-				  + $da*($Rn*$e_sq*$sin_lat*$cos_lat)/$from_a
-				  + $df*($Rm/$b_a + $Rn*$b_a)*$sin_lat*$cos_lat
-				) / ($Rm + $elev);
-
-
-	my $d_lon = ( - $dx*$sin_lon
-				  + $dy*$cos_lon
-				) / (($Rn+$elev)*$cos_lat);
-
-	my $d_elev = + $dx*$cos_lat*$cos_lon
-				 + $dy*$cos_lat*$sin_lon
-				 + $dz*$sin_lat
-				 - $da*$from_a/$Rn
-				 + $df*$b_a*$Rn*$sin_lat*$sin_lat;
-
-	my ($new_lat, $new_lon, $new_elev) = (
-		 $lat + $d_lat * DAR,
-		 $lon + $d_lon * DAR,
-		 $elev + $d_elev,
-	   );
-
-	return ($new_lat, $new_lon, $new_elev) if wantarray;
-	return sprintf "%s, (%s m)", format_ll_ISO($new_lat, $new_lon), $new_elev;
-
-}
-
+'''
 1;
 __END__
 
