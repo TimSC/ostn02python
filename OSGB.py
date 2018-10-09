@@ -560,7 +560,11 @@ def grid_to_big_code(e, n):
 
 def OSGB36_to_GridRef(e, n, fig=6):
 	smallcode, ebig, nbig = grid_to_small_code(e, n)
+	if smallcode is None:
+		return None
 	bigcode = grid_to_big_code(ebig // BIG_SQUARE, nbig // BIG_SQUARE)
+	if bigcode is None:
+		return None
 	code = "{}{}".format(bigcode, smallcode)
 	grid_corner = parse_grid(code)
 	if fig == 6:
