@@ -7,9 +7,6 @@ import math
 #See README.md for usage.
 #See COPYING for redistribution terms
 
-RAD = math.pi / 180
-DAR = 180 / math.pi
-
 WGS84_MAJOR_AXIS = 6378137.000
 WGS84_FLATTENING = 1.0 / 298.257223563
 
@@ -24,8 +21,8 @@ ellipsoid_shapes = {
 # yes lots of synonyms
 
 # constants for OSGB mercator projection
-LAM0 = RAD * -2.0  # lon of grid origin
-PHI0 = RAD * 49.0  # lat of grid origin
+LAM0 = math.radians(-2.0)  # lon of grid origin
+PHI0 = math.radians(49.0)  # lat of grid origin
 E0 =  400000   # Easting for origin
 N0 = -100000   # Northing for origin
 F0 = 0.9996012717 # Convergence factor
@@ -55,8 +52,8 @@ def ll_to_grid(lat,lon,alt=0.0,shape = 'WGS84'):
 	e2 = (a**2.-b**2.)/a**2.
 	n = (a-b)/(a+b)
 	
-	phi = RAD * lat
-	lam = RAD * lon
+	phi = math.radians(lat)
+	lam = math.radians(lon)
 
 	sp2  = math.sin(phi)**2.
 	nu   = a * F0 * (1. - e2 * sp2 ) ** -0.5
@@ -135,8 +132,8 @@ def grid_to_ll(E,N,shape='WGS84'):
 	phi = phi		- VII*e**2. + VIII*e**4. -   IX*e**6.
 	lam = LAM0 + X*e -  XI*e**3. +  XII*e**5. - XIIA*e**7.
 
-	phi = phi * DAR
-	lam = lam * DAR
+	phi = math.degrees(phi)
+	lam = math.degrees(lam)
 
 	return (phi, lam)
 	#return format_ll_ISO($phi,$lam);
@@ -544,8 +541,8 @@ def parse_grid (letters,e=0.0,n=0.0):
 	return (e, n)
 
 def grid_to_small_code(e, n):
-	er = int(e % BIG_SQUARE) / SQUARE
-	nr = int(n % BIG_SQUARE) / SQUARE
+	er = int(e % BIG_SQUARE) // SQUARE
+	nr = int(n % BIG_SQUARE) // SQUARE
 	found = None
 	for cd in Small_off:
 		if er == Small_off[cd][0] and nr == Small_off[cd][1]:
@@ -560,6 +557,18 @@ def grid_to_big_code(e, n):
 		if e == Big_off[cd][0] and n == Big_off[cd][1]:
 			found = cd
 	return found
+
+def OSGB36_to_GridRef(e, n, fig=6):
+	smallcode, ebig, nbig = grid_to_small_code(e, n)
+	bigcode = grid_to_big_code(ebig // BIG_SQUARE, nbig // BIG_SQUARE)
+	code = "{}{}".format(bigcode, smallcode)
+	grid_corner = parse_grid(code)
+	if fig == 6:
+		return "{}{}{}".format(code, int(round(((e-grid_corner[0])/100.0))), int(round((n-grid_corner[1])/100.0)))
+	elif fig == 8:
+		return "{}{}{}".format(code, int(round(((e-grid_corner[0])/10.0))), int(round((n-grid_corner[1])/10.0)))
+	elif fig == 10:
+		return "{}{}{}".format(code, int(round((e-grid_corner[0]))), int(round(n-grid_corner[1])))
 
 def os_streetview_tile_to_grid(tile_name):
 	#Convert OS Street View tile name (e.g. SO02NW) to grid (e.g. 
@@ -605,13 +614,13 @@ def grid_to_os_streetview_tile(grid):
 	if not etile and not ntile: corner = "SW"
 
 	#Mid level offset
-	eMidOffset = int(e % 100000) / 10000
-	nMidOffset = int(n % 100000) / 10000
+	eMidOffset = int(e % 100000) // 10000
+	nMidOffset = int(n % 100000) // 10000
 	e -= eMidOffset * 10000
 	n -= nMidOffset * 10000
 
 	smallCode, e, n = grid_to_small_code(e, n)
-	bigCode = grid_to_big_code(e / BIG_SQUARE, n / BIG_SQUARE)
+	bigCode = grid_to_big_code(e // BIG_SQUARE, n // BIG_SQUARE)
 
 	codeOut = "{0}{1}{2}{3}{4}".format(bigCode, smallCode, eMidOffset, nMidOffset, corner)
 	return codeOut, eSmall, nSmall
@@ -837,8 +846,8 @@ sub _get_sdms {
 	return ($sign, $deg, $whole_minutes, $whole_seconds);
 }
 '''
-parameters_for_datum = {"OSGB36": [ 573.604, 0.119600236/10000, 375, -111, 431 ],
-	"OSGM02": [ 573.604, 0.119600236/10000, 375, -111, 431 ]}
+parameters_for_datum = {"OSGB36": [ 573.604, 0.119600236/10000.0, 375, -111, 431 ],
+	"OSGM02": [ 573.604, 0.119600236/10000.0, 375, -111, 431 ]}
 
 def shift_ll_from_WGS84(lat, lon, elevation = 0.0):
 
@@ -909,8 +918,8 @@ def _transform(lat, lon, elev,
 				 + df*b_a*Rn*sin_lat*sin_lat)
 
 	(new_lat, new_lon, new_elev) = (
-		 lat + d_lat * DAR,
-		 lon + d_lon * DAR,
+		 lat + math.degrees(d_lat),
+		 lon + math.degrees(d_lon),
 		 elev + d_elev)
 
 	return new_lat, new_lon, new_elev

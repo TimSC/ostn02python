@@ -1,6 +1,6 @@
 from __future__ import print_function
-from OSGB import *
-from OSTN02 import *
+import OSGB
+import OSTN02
 import transform
 
 #OSTN02 for Python
@@ -15,17 +15,17 @@ if __name__=="__main__":
 	print("================")
 	print("Take OS map reference: TR143599")
 
-	xin, yin = parse_grid("TR", 14300, 59900)
+	xin, yin = OSGB.parse_grid("TR", 14300, 59900)
 
 	print("OS X (Eastings) "+str(xin))
 	print("OS Y (Northings) "+str(yin))
 
-	(x,y,h) = OSGB36_to_ETRS89 (xin, yin)
+	(x,y,h) = OSTN02.OSGB36_to_ETRS89 (xin, yin)
 
 	print("Using the OSGB36_to_ETRS89 conversion gives us the grid position:")
 	print(str(x) + "," + str(y) + "," + str(h))
 
-	(gla, glo) = grid_to_ll(x, y)
+	(gla, glo) = OSGB.grid_to_ll(x, y)
 
 	print("The grid position converts to ETRS89 lat,lon (using grid_to_ll) of:")
 	print(str((gla, glo)))
@@ -50,28 +50,36 @@ if __name__=="__main__":
 	h = 44.621
 
 	print("To ETRS89 grid (using ll_to_grid):")
-	(x2,y2) = ll_to_grid(gla, glo)
+	(x2,y2) = OSGB.ll_to_grid(gla, glo)
 	print(str((x2,y2)))
 
 	print("To OS Eastings/Northings (using ETRS89_to_OSGB36):")
-	print(ETRS89_to_OSGB36(x2,y2,h))
+	x3, y3, h3 = OSTN02.ETRS89_to_OSGB36(x2,y2,h)
+	print(x3, y3, h3)
 
 	print("Actual Answer: 614300, 159900, 0")
+
+	print("\nOSGB36_to_GridRef")
+	print("=================")
+
+	gridref = OSGB.OSGB36_to_GridRef(x3, y3)
+	print("Result:", gridref)
+	print("Expected: TR143599")
 
 	print("\nExceptions")
 	print("==========")
 	print("Some areas do not have OSTN02 coverage for example OS grid 622129,185038")
 	print("This causes an exception to be raised, but it can be caught:")
 	try:
-		(x,y,h) = OSGB36_to_ETRS89 (622129,185038)
+		(x,y,h) = OSTN02.OSGB36_to_ETRS89 (622129,185038)
 	except Exception as e:
 		print('Exception occurred, value:', e)
 
 	print("\nAn approximate transform is available where OSTN02 is not defined.")
 	lat, lon = 51.520557, 1.200446
 	print("Convert {}, {}".format(lat, lon))
-	(lat2, lon2, alt2) = shift_ll_from_WGS84(lat, lon, 0.0)
-	print ("Result:", ll_to_grid(lat2, lon2))
+	(lat2, lon2, alt2) = OSGB.shift_ll_from_WGS84(lat, lon, 0.0)
+	print ("Result:", OSGB.ll_to_grid(lat2, lon2))
 	print ("Expected: 622128, 185038 (according to streetmap.co.uk)")
 
 	print("All done!")
