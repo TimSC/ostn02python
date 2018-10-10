@@ -568,11 +568,11 @@ def OSGB36_to_GridRef(e, n, fig=6):
 	code = "{}{}".format(bigcode, smallcode)
 	grid_corner = parse_grid(code)
 	if fig == 6:
-		return "{}{}{}".format(code, int(round(((e-grid_corner[0])/100.0))), int(round((n-grid_corner[1])/100.0)))
+		return "{}{:03d}{:03d}".format(code, int(round(((e-grid_corner[0])/100.0))), int(round((n-grid_corner[1])/100.0)))
 	elif fig == 8:
-		return "{}{}{}".format(code, int(round(((e-grid_corner[0])/10.0))), int(round((n-grid_corner[1])/10.0)))
+		return "{}{:04d}{:04d}".format(code, int(round(((e-grid_corner[0])/10.0))), int(round((n-grid_corner[1])/10.0)))
 	elif fig == 10:
-		return "{}{}{}".format(code, int(round((e-grid_corner[0]))), int(round(n-grid_corner[1])))
+		return "{}{:05d}{:05d}".format(code, int(round((e-grid_corner[0]))), int(round(n-grid_corner[1])))
 
 def os_streetview_tile_to_grid(tile_name):
 	#Convert OS Street View tile name (e.g. SO02NW) to grid (e.g. 
